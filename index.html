@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Security Posture Auto-Hardening Bot — Continuously scans AWS, Azure & GCP configurations, detects misconfigurations in real time, and auto-fixes security vulnerabilities.">
+    <meta name="keywords" content="cloud security, auto-hardening, AWS, Azure, GCP, misconfiguration, compliance, IAM, S3, firewall">
+    <meta property="og:title" content="Security Posture Auto-Hardening Bot">
+    <meta property="og:description" content="Prevent breaches like Capital One ($80M fine) with continuous cloud security scanning and auto-remediation.">
+    <meta property="og:type" content="website">
+    <title>ShieldAI — Security Posture Auto-Hardening Bot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <svg class="logo-icon" viewBox="0 0 40 40" width="36" height="36">
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f72585"/>
+                            <stop offset="50%" style="stop-color:#7209b7"/>
+                            <stop offset="100%" style="stop-color:#4cc9f0"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M20 2 L36 10 L36 26 L20 38 L4 26 L4 10 Z" fill="none" stroke="url(#logoGrad)" stroke-width="2.5"/>
+                    <path d="M20 8 L14 18 L20 16 L26 18 Z" fill="url(#logoGrad)" opacity="0.8"/>
+                    <path d="M14 18 L20 32 L20 16 Z" fill="url(#logoGrad)" opacity="0.6"/>
+                    <path d="M26 18 L20 32 L20 16 Z" fill="url(#logoGrad)" opacity="0.4"/>
+                </svg>
+                <span>ShieldAI</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#dashboard">Dashboard</a></li>
+                <li><a href="#providers">Providers</a></li>
+                <li><a href="#detections">Detections</a></li>
+                <li><a href="#compliance">Compliance</a></li>
+                <li><a href="#features">Features</a></li>
+            </ul>
+            <a href="#dashboard" class="nav-cta">Launch Console</a>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero" id="hero">
+        <div class="hero-bg">
+            <div class="gradient-orb orb-1"></div>
+            <div class="gradient-orb orb-2"></div>
+            <div class="gradient-orb orb-3"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge anim-fade-up">
+                <span class="pulse-dot"></span>
+                Actively Protecting 2,847 Cloud Resources
+            </div>
+            <h1 class="hero-title anim-fade-up delay-1">
+                Security Posture<br>
+                <span class="gradient-text">Auto-Hardening</span> Bot
+            </h1>
+            <p class="hero-subtitle anim-fade-up delay-2">
+                Continuously scans AWS, Azure & GCP configurations. Detects misconfigurations in real time. 
+                Automatically fixes low-risk issues. Prevents breaches like Capital One's $80M fine.
+            </p>
+            <div class="hero-actions anim-fade-up delay-3">
+                <a href="#dashboard" class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Launch Dashboard
+                </a>
+                <a href="#compliance" class="btn btn-ghost">
+                    View Compliance Report →
+                </a>
+            </div>
+            <div class="hero-stats anim-fade-up delay-4">
+                <div class="hero-stat">
+                    <span class="stat-number" data-target="99.7">0</span><span class="stat-suffix">%</span>
+                    <span class="stat-label">Uptime</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="stat-number" data-target="2847">0</span>
+                    <span class="stat-label">Resources Scanned</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="stat-number" data-target="384">0</span>
+                    <span class="stat-label">Issues Auto-Fixed</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="stat-number" data-target="28">0</span><span class="stat-suffix">s</span>
+                    <span class="stat-label">Avg Detection Time</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-scroll-indicator">
+            <span>Scroll to explore</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
+
+    <!-- ===== LIVE SCANNING DASHBOARD ===== -->
+    <section class="section section-dashboard" id="dashboard">
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Real-Time Monitoring</span>
+                <h2 class="section-title">Live Scanning <span class="gradient-text">Dashboard</span></h2>
+                <p class="section-desc">Continuous security scanning across all cloud environments with real-time threat detection and automated remediation.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <!-- Scanning Radar -->
+                <div class="dash-card radar-card anim-fade-up">
+                    <div class="card-header">
+                        <h3>Active Scan</h3>
+                        <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
+                    </div>
+                    <div class="radar-container">
+                        <div class="radar">
+                            <div class="radar-ring ring-1"></div>
+                            <div class="radar-ring ring-2"></div>
+                            <div class="radar-ring ring-3"></div>
+                            <div class="radar-sweep"></div>
+                            <div class="radar-center">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <div class="radar-dot dot-1"></div>
+                            <div class="radar-dot dot-2"></div>
+                            <div class="radar-dot dot-3"></div>
+                            <div class="radar-dot dot-4"></div>
+                            <div class="radar-dot dot-5"></div>
+                        </div>
+                        <div class="scan-status">
+                            <span class="scan-target" id="scanTarget">Scanning: AWS IAM Roles...</span>
+                            <div class="scan-progress">
+                                <div class="scan-progress-bar" id="scanProgressBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Feed -->
+                <div class="dash-card feed-card anim-fade-up delay-1">
+                    <div class="card-header">
+                        <h3>Detection Feed</h3>
+                        <span class="feed-count" id="feedCount">0 events</span>
+                    </div>
+                    <div class="feed-list" id="feedList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Severity Breakdown -->
+                <div class="dash-card severity-card anim-fade-up delay-2">
+                    <div class="card-header">
+                        <h3>Severity Overview</h3>
+                    </div>
+                    <div class="severity-chart">
+                        <div class="severity-ring-container">
+                            <svg class="severity-ring" viewBox="0 0 200 200">
+                                <circle class="ring-bg" cx="100" cy="100" r="85"/>
+                                <circle class="ring-segment ring-critical" cx="100" cy="100" r="85" data-percent="8"/>
+                                <circle class="ring-segment ring-high" cx="100" cy="100" r="85" data-percent="18"/>
+                                <circle class="ring-segment ring-medium" cx="100" cy="100" r="85" data-percent="32"/>
+                                <circle class="ring-segment ring-low" cx="100" cy="100" r="85" data-percent="42"/>
+                            </svg>
+                            <div class="ring-center-text">
+                                <span class="ring-total" data-target="156">0</span>
+                                <span class="ring-label">Issues</span>
+                            </div>
+                        </div>
+                        <div class="severity-legend">
+                            <div class="legend-item"><span class="legend-dot critical"></span>Critical<span class="legend-count">12</span></div>
+                            <div class="legend-item"><span class="legend-dot high"></span>High<span class="legend-count">28</span></div>
+                            <div class="legend-item"><span class="legend-dot medium"></span>Medium<span class="legend-count">50</span></div>
+                            <div class="legend-item"><span class="legend-dot low"></span>Low<span class="legend-count">66</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CLOUD PROVIDERS ===== -->
+    <section class="section section-providers" id="providers">
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Multi-Cloud Coverage</span>
+                <h2 class="section-title">Cloud Provider <span class="gradient-text">Security Status</span></h2>
+                <p class="section-desc">Unified security posture across all major cloud providers with deep configuration scanning.</p>
+            </div>
+
+            <div class="provider-grid">
+                <!-- AWS -->
+                <div class="provider-card anim-fade-up" data-provider="aws">
+                    <div class="provider-glow"></div>
+                    <div class="provider-header">
+                        <div class="provider-icon">
+                            <svg viewBox="0 0 60 60" width="48" height="48">
+                                <rect width="60" height="60" rx="12" fill="#FF9900" opacity="0.15"/>
+                                <text x="30" y="38" text-anchor="middle" fill="#FF9900" font-size="22" font-weight="bold">AWS</text>
+                            </svg>
+                        </div>
+                        <div class="provider-status status-warning">
+                            <span class="status-dot"></span> 3 Issues
+                        </div>
+                    </div>
+                    <h3 class="provider-name">Amazon Web Services</h3>
+                    <div class="provider-metrics">
+                        <div class="metric">
+                            <span class="metric-label">Resources</span>
+                            <span class="metric-value">1,247</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Scanned</span>
+                            <span class="metric-value">1,247</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Compliant</span>
+                            <span class="metric-value">98.2%</span>
+                        </div>
+                    </div>
+                    <div class="provider-progress">
+                        <div class="progress-header">
+                            <span>Compliance Score</span>
+                            <span class="progress-value">98.2%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-width="98.2" style="--progress-color: #FF9900;"></div>
+                        </div>
+                    </div>
+                    <div class="provider-services">
+                        <span class="service-tag">S3</span>
+                        <span class="service-tag">EC2</span>
+                        <span class="service-tag">IAM</span>
+                        <span class="service-tag">RDS</span>
+                        <span class="service-tag">Lambda</span>
+                        <span class="service-tag">VPC</span>
+                    </div>
+                </div>
+
+                <!-- Azure -->
+                <div class="provider-card anim-fade-up delay-1" data-provider="azure">
+                    <div class="provider-glow"></div>
+                    <div class="provider-header">
+                        <div class="provider-icon">
+                            <svg viewBox="0 0 60 60" width="48" height="48">
+                                <rect width="60" height="60" rx="12" fill="#0078D4" opacity="0.15"/>
+                                <text x="30" y="35" text-anchor="middle" fill="#0078D4" font-size="14" font-weight="bold">Azure</text>
+                            </svg>
+                        </div>
+                        <div class="provider-status status-good">
+                            <span class="status-dot"></span> Secure
+                        </div>
+                    </div>
+                    <h3 class="provider-name">Microsoft Azure</h3>
+                    <div class="provider-metrics">
+                        <div class="metric">
+                            <span class="metric-label">Resources</span>
+                            <span class="metric-value">892</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Scanned</span>
+                            <span class="metric-value">892</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Compliant</span>
+                            <span class="metric-value">99.6%</span>
+                        </div>
+                    </div>
+                    <div class="provider-progress">
+                        <div class="progress-header">
+                            <span>Compliance Score</span>
+                            <span class="progress-value">99.6%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-width="99.6" style="--progress-color: #0078D4;"></div>
+                        </div>
+                    </div>
+                    <div class="provider-services">
+                        <span class="service-tag">Blob</span>
+                        <span class="service-tag">VM</span>
+                        <span class="service-tag">AD</span>
+                        <span class="service-tag">SQL</span>
+                        <span class="service-tag">AKS</span>
+                        <span class="service-tag">NSG</span>
+                    </div>
+                </div>
+
+                <!-- GCP -->
+                <div class="provider-card anim-fade-up delay-2" data-provider="gcp">
+                    <div class="provider-glow"></div>
+                    <div class="provider-header">
+                        <div class="provider-icon">
+                            <svg viewBox="0 0 60 60" width="48" height="48">
+                                <rect width="60" height="60" rx="12" fill="#4285F4" opacity="0.15"/>
+                                <text x="30" y="36" text-anchor="middle" fill="#4285F4" font-size="16" font-weight="bold">GCP</text>
+                            </svg>
+                        </div>
+                        <div class="provider-status status-critical">
+                            <span class="status-dot"></span> 1 Critical
+                        </div>
+                    </div>
+                    <h3 class="provider-name">Google Cloud Platform</h3>
+                    <div class="provider-metrics">
+                        <div class="metric">
+                            <span class="metric-label">Resources</span>
+                            <span class="metric-value">708</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Scanned</span>
+                            <span class="metric-value">708</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Compliant</span>
+                            <span class="metric-value">96.8%</span>
+                        </div>
+                    </div>
+                    <div class="provider-progress">
+                        <div class="progress-header">
+                            <span>Compliance Score</span>
+                            <span class="progress-value">96.8%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" data-width="96.8" style="--progress-color: #4285F4;"></div>
+                        </div>
+                    </div>
+                    <div class="provider-services">
+                        <span class="service-tag">GCS</span>
+                        <span class="service-tag">GCE</span>
+                        <span class="service-tag">IAM</span>
+                        <span class="service-tag">BigQuery</span>
+                        <span class="service-tag">GKE</span>
+                        <span class="service-tag">VPC</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== MISCONFIGURATION DETECTIONS ===== -->
+    <section class="section section-detections" id="detections">
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Threat Detection & Remediation</span>
+                <h2 class="section-title">Misconfiguration <span class="gradient-text">Detection Panel</span></h2>
+                <p class="section-desc">Real-time detection with automatic remediation for low-risk issues and one-click fix suggestions for high-risk vulnerabilities.</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="detection-filters anim-fade-up">
+                <button class="filter-btn active" data-filter="all">
+                    All <span class="filter-count">24</span>
+                </button>
+                <button class="filter-btn" data-filter="critical">
+                    <span class="filter-dot critical"></span> Critical <span class="filter-count">3</span>
+                </button>
+                <button class="filter-btn" data-filter="high">
+                    <span class="filter-dot high"></span> High <span class="filter-count">6</span>
+                </button>
+                <button class="filter-btn" data-filter="medium">
+                    <span class="filter-dot medium"></span> Medium <span class="filter-count">8</span>
+                </button>
+                <button class="filter-btn" data-filter="low">
+                    <span class="filter-dot low"></span> Low <span class="filter-count">7</span>
+                </button>
+            </div>
+
+            <!-- Detection Table -->
+            <div class="detection-table-wrapper anim-fade-up">
+                <div class="detection-table">
+                    <div class="table-header">
+                        <div class="th-cell">Severity</div>
+                        <div class="th-cell">Resource</div>
+                        <div class="th-cell">Issue</div>
+                        <div class="th-cell">Provider</div>
+                        <div class="th-cell">Status</div>
+                        <div class="th-cell">Action</div>
+                    </div>
+                    <div class="table-body" id="detectionTableBody">
+                        <!-- Row 1 - Critical -->
+                        <div class="table-row" data-severity="critical">
+                            <div class="td-cell"><span class="severity-badge critical">CRITICAL</span></div>
+                            <div class="td-cell"><code>prod-db-sg</code></div>
+                            <div class="td-cell">Security group allows unrestricted inbound access (0.0.0.0/0) on port 3306</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-danger" data-fix-id="1">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Restrict inbound rule to VPC CIDR 10.0.0.0/16</div>
+                            </div>
+                        </div>
+                        <!-- Row 2 - Critical -->
+                        <div class="table-row" data-severity="critical">
+                            <div class="td-cell"><span class="severity-badge critical">CRITICAL</span></div>
+                            <div class="td-cell"><code>admin-role</code></div>
+                            <div class="td-cell">IAM role has full administrative access (*:*) without MFA requirement</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-danger" data-fix-id="2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Add MFA condition and scope to least-privilege policy</div>
+                            </div>
+                        </div>
+                        <!-- Row 3 - Critical -->
+                        <div class="table-row" data-severity="critical">
+                            <div class="td-cell"><span class="severity-badge critical">CRITICAL</span></div>
+                            <div class="td-cell"><code>gcs-backup-prod</code></div>
+                            <div class="td-cell">Cloud Storage bucket publicly accessible with allUsers read permission</div>
+                            <div class="td-cell"><span class="provider-badge gcp">GCP</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-danger" data-fix-id="3">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Remove allUsers binding, enable uniform bucket-level access</div>
+                            </div>
+                        </div>
+                        <!-- Row 4 - High -->
+                        <div class="table-row" data-severity="high">
+                            <div class="td-cell"><span class="severity-badge high">HIGH</span></div>
+                            <div class="td-cell"><code>s3://client-data</code></div>
+                            <div class="td-cell">S3 bucket versioning disabled — no protection against accidental deletion</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-warning" data-fix-id="4">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable versioning and add lifecycle policy</div>
+                            </div>
+                        </div>
+                        <!-- Row 5 - High -->
+                        <div class="table-row" data-severity="high">
+                            <div class="td-cell"><span class="severity-badge high">HIGH</span></div>
+                            <div class="td-cell"><code>webapp-nsg</code></div>
+                            <div class="td-cell">Network Security Group allows SSH (port 22) from any source IP</div>
+                            <div class="td-cell"><span class="provider-badge azure">Azure</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-warning" data-fix-id="5">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Restrict SSH to bastion host IP range</div>
+                            </div>
+                        </div>
+                        <!-- Row 6 - High -->
+                        <div class="table-row" data-severity="high">
+                            <div class="td-cell"><span class="severity-badge high">HIGH</span></div>
+                            <div class="td-cell"><code>prod-rds-01</code></div>
+                            <div class="td-cell">RDS instance encryption at rest is disabled</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-warning" data-fix-id="6">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable encryption using AWS KMS key</div>
+                            </div>
+                        </div>
+                        <!-- Row 7 - High -->
+                        <div class="table-row" data-severity="high">
+                            <div class="td-cell"><span class="severity-badge high">HIGH</span></div>
+                            <div class="td-cell"><code>gce-vm-legacy</code></div>
+                            <div class="td-cell">Compute instance running with default service account and full API access</div>
+                            <div class="td-cell"><span class="provider-badge gcp">GCP</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-warning" data-fix-id="7">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Assign custom service account with minimal scopes</div>
+                            </div>
+                        </div>
+                        <!-- Row 8 - High -->
+                        <div class="table-row" data-severity="high">
+                            <div class="td-cell"><span class="severity-badge high">HIGH</span></div>
+                            <div class="td-cell"><code>api-gateway-v2</code></div>
+                            <div class="td-cell">API Gateway missing WAF integration and rate limiting</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-warning" data-fix-id="8">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Attach AWS WAF with managed rule groups and throttling</div>
+                            </div>
+                        </div>
+                        <!-- Row 9 - High -->
+                        <div class="table-row" data-severity="high">
+                            <div class="td-cell"><span class="severity-badge high">HIGH</span></div>
+                            <div class="td-cell"><code>keyvault-prod</code></div>
+                            <div class="td-cell">Key Vault soft-delete and purge protection not enabled</div>
+                            <div class="td-cell"><span class="provider-badge azure">Azure</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-warning" data-fix-id="9">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable soft-delete with 90-day retention and purge protection</div>
+                            </div>
+                        </div>
+                        <!-- Row 10 - Medium -->
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>cloudtrail-main</code></div>
+                            <div class="td-cell">CloudTrail log file validation is not enabled</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="10">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable log file integrity validation</div>
+                            </div>
+                        </div>
+                        <!-- Row 11 - Medium -->
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>flow-logs-vpc</code></div>
+                            <div class="td-cell">VPC Flow Logs not enabled for production VPC</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="11">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable VPC Flow Logs to CloudWatch</div>
+                            </div>
+                        </div>
+                        <!-- Row 12-16 Medium -->
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>azure-sql-01</code></div>
+                            <div class="td-cell">Azure SQL server auditing retention set to less than 90 days</div>
+                            <div class="td-cell"><span class="provider-badge azure">Azure</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="12">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Increase audit retention to 365 days</div>
+                            </div>
+                        </div>
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>gke-cluster-01</code></div>
+                            <div class="td-cell">GKE cluster network policy not enforced</div>
+                            <div class="td-cell"><span class="provider-badge gcp">GCP</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="13">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable Calico network policy enforcement</div>
+                            </div>
+                        </div>
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>ec2-imdsv1</code></div>
+                            <div class="td-cell">EC2 instance using IMDSv1 (vulnerable to SSRF attacks)</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="14">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enforce IMDSv2 with HttpTokens=required</div>
+                            </div>
+                        </div>
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>lb-tls-policy</code></div>
+                            <div class="td-cell">Load balancer using outdated TLS 1.0 policy</div>
+                            <div class="td-cell"><span class="provider-badge azure">Azure</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="15">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Update to TLS 1.2 minimum policy</div>
+                            </div>
+                        </div>
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>dns-dnssec</code></div>
+                            <div class="td-cell">Cloud DNS zone DNSSEC signing not enabled</div>
+                            <div class="td-cell"><span class="provider-badge gcp">GCP</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="16">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable DNSSEC with default signing algorithm</div>
+                            </div>
+                        </div>
+                        <div class="table-row" data-severity="medium">
+                            <div class="td-cell"><span class="severity-badge medium">MEDIUM</span></div>
+                            <div class="td-cell"><code>ebs-encrypt</code></div>
+                            <div class="td-cell">EBS default encryption not enabled in us-east-1 region</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge open">Open</span></div>
+                            <div class="td-cell">
+                                <button class="fix-btn fix-btn-medium" data-fix-id="17">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    One-Click Fix
+                                </button>
+                                <div class="fix-tooltip">Enable EBS default encryption with KMS</div>
+                            </div>
+                        </div>
+                        <!-- Low rows - Auto-Fixed -->
+                        <div class="table-row" data-severity="low">
+                            <div class="td-cell"><span class="severity-badge low">LOW</span></div>
+                            <div class="td-cell"><code>s3-access-log</code></div>
+                            <div class="td-cell">S3 bucket access logging not configured</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge fixed">Auto-Fixed ✓</span></div>
+                            <div class="td-cell"><span class="auto-fix-label">Remediated automatically</span></div>
+                        </div>
+                        <div class="table-row" data-severity="low">
+                            <div class="td-cell"><span class="severity-badge low">LOW</span></div>
+                            <div class="td-cell"><code>tag-compliance</code></div>
+                            <div class="td-cell">12 EC2 instances missing required cost-allocation tags</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge fixed">Auto-Fixed ✓</span></div>
+                            <div class="td-cell"><span class="auto-fix-label">Remediated automatically</span></div>
+                        </div>
+                        <div class="table-row" data-severity="low">
+                            <div class="td-cell"><span class="severity-badge low">LOW</span></div>
+                            <div class="td-cell"><code>ssl-cert-01</code></div>
+                            <div class="td-cell">SSL certificate expiring in 28 days — auto-renewal configured</div>
+                            <div class="td-cell"><span class="provider-badge azure">Azure</span></div>
+                            <div class="td-cell"><span class="status-badge fixed">Auto-Fixed ✓</span></div>
+                            <div class="td-cell"><span class="auto-fix-label">Remediated automatically</span></div>
+                        </div>
+                        <div class="table-row" data-severity="low">
+                            <div class="td-cell"><span class="severity-badge low">LOW</span></div>
+                            <div class="td-cell"><code>cw-alarms</code></div>
+                            <div class="td-cell">CloudWatch billing alarm threshold outdated</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge fixed">Auto-Fixed ✓</span></div>
+                            <div class="td-cell"><span class="auto-fix-label">Remediated automatically</span></div>
+                        </div>
+                        <div class="table-row" data-severity="low">
+                            <div class="td-cell"><span class="severity-badge low">LOW</span></div>
+                            <div class="td-cell"><code>gcs-lifecycle</code></div>
+                            <div class="td-cell">Storage bucket missing lifecycle management rules</div>
+                            <div class="td-cell"><span class="provider-badge gcp">GCP</span></div>
+                            <div class="td-cell"><span class="status-badge fixed">Auto-Fixed ✓</span></div>
+                            <div class="td-cell"><span class="auto-fix-label">Remediated automatically</span></div>
+                        </div>
+                        <div class="table-row" data-severity="low">
+                            <div class="td-cell"><span class="severity-badge low">LOW</span></div>
+                            <div class="td-cell"><code>idle-resources</code></div>
+                            <div class="td-cell">3 unused Elastic IPs found — releasing to save costs</div>
+                            <div class="td-cell"><span class="provider-badge aws">AWS</span></div>
+                            <div class="td-cell"><span class="status-badge fixed">Auto-Fixed ✓</span></div>
+                            <div class="td-cell"><span class="auto-fix-label">Remediated automatically</span></div>
+                        </div>
+                        <div class="table-row" data-severity="low">
+                            <div class="td-cell"><span class="severity-badge low">LOW</span></div>
+                            <div class="td-cell"><code>log-retention</code></div>
+                            <div class="td-cell">Azure Activity Log retention set to default 90 days</div>
+                            <div class="td-cell"><span class="provider-badge azure">Azure</span></div>
+                            <div class="td-cell"><span class="status-badge fixed">Auto-Fixed ✓</span></div>
+                            <div class="td-cell"><span class="auto-fix-label">Remediated automatically</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== COMPLIANCE REPORT ===== -->
+    <section class="section section-compliance" id="compliance">
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Compliance & Reporting</span>
+                <h2 class="section-title">Before / After <span class="gradient-text">Compliance Report</span></h2>
+                <p class="section-desc">See the measurable impact of automated hardening on your cloud security posture.</p>
+            </div>
+
+            <div class="compliance-grid">
+                <!-- Before -->
+                <div class="compliance-card before-card anim-fade-up">
+                    <div class="compliance-card-header">
+                        <span class="compliance-label label-before">BEFORE</span>
+                        <span class="compliance-date">June 15, 2026</span>
+                    </div>
+                    <div class="donut-container">
+                        <svg class="donut-chart" viewBox="0 0 200 200">
+                            <circle class="donut-bg" cx="100" cy="100" r="85"/>
+                            <circle class="donut-fill donut-before" cx="100" cy="100" r="85" data-percent="62"/>
+                        </svg>
+                        <div class="donut-center">
+                            <span class="donut-value" data-target="62">0</span><span class="donut-percent">%</span>
+                            <span class="donut-sublabel">Compliant</span>
+                        </div>
+                    </div>
+                    <div class="compliance-breakdown">
+                        <div class="compliance-row">
+                            <span class="comp-category">IAM & Access</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill before-fill" data-width="45" style="--bar-color: #ff1744;"></div>
+                                </div>
+                                <span class="comp-value">45%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Network Security</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill before-fill" data-width="58" style="--bar-color: #ff9100;"></div>
+                                </div>
+                                <span class="comp-value">58%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Data Storage</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill before-fill" data-width="71" style="--bar-color: #ffea00;"></div>
+                                </div>
+                                <span class="comp-value">71%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Encryption</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill before-fill" data-width="64" style="--bar-color: #ff9100;"></div>
+                                </div>
+                                <span class="comp-value">64%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Logging & Monitoring</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill before-fill" data-width="52" style="--bar-color: #ff1744;"></div>
+                                </div>
+                                <span class="comp-value">52%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arrow -->
+                <div class="compliance-arrow anim-fade-up delay-1">
+                    <div class="arrow-line"></div>
+                    <svg class="arrow-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <span class="arrow-label">Auto-Hardened</span>
+                </div>
+
+                <!-- After -->
+                <div class="compliance-card after-card anim-fade-up delay-2">
+                    <div class="compliance-card-header">
+                        <span class="compliance-label label-after">AFTER</span>
+                        <span class="compliance-date">June 29, 2026</span>
+                    </div>
+                    <div class="donut-container">
+                        <svg class="donut-chart" viewBox="0 0 200 200">
+                            <circle class="donut-bg" cx="100" cy="100" r="85"/>
+                            <circle class="donut-fill donut-after" cx="100" cy="100" r="85" data-percent="97"/>
+                        </svg>
+                        <div class="donut-center">
+                            <span class="donut-value" data-target="97">0</span><span class="donut-percent">%</span>
+                            <span class="donut-sublabel">Compliant</span>
+                        </div>
+                    </div>
+                    <div class="compliance-breakdown">
+                        <div class="compliance-row">
+                            <span class="comp-category">IAM & Access</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill after-fill" data-width="96" style="--bar-color: #00e676;"></div>
+                                </div>
+                                <span class="comp-value">96%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Network Security</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill after-fill" data-width="98" style="--bar-color: #00e676;"></div>
+                                </div>
+                                <span class="comp-value">98%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Data Storage</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill after-fill" data-width="99" style="--bar-color: #00e676;"></div>
+                                </div>
+                                <span class="comp-value">99%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Encryption</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill after-fill" data-width="97" style="--bar-color: #00e676;"></div>
+                                </div>
+                                <span class="comp-value">97%</span>
+                            </div>
+                        </div>
+                        <div class="compliance-row">
+                            <span class="comp-category">Logging & Monitoring</span>
+                            <div class="comp-bar-container">
+                                <div class="comp-bar">
+                                    <div class="comp-bar-fill after-fill" data-width="95" style="--bar-color: #00e676;"></div>
+                                </div>
+                                <span class="comp-value">95%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="compliance-actions anim-fade-up">
+                <button class="btn btn-primary" id="downloadReport">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Download Full Report (PDF)
+                </button>
+                <button class="btn btn-ghost" id="scheduleReport">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    Schedule Weekly Report
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ACTIVITY FEED ===== -->
+    <section class="section section-activity" id="activity">
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Live Activity</span>
+                <h2 class="section-title">Real-Time <span class="gradient-text">Security Events</span></h2>
+            </div>
+            <div class="activity-ticker-wrapper anim-fade-up">
+                <div class="activity-ticker" id="activityTicker">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="section section-features" id="features">
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Capabilities</span>
+                <h2 class="section-title">Powerful Security <span class="gradient-text">Features</span></h2>
+                <p class="section-desc">Enterprise-grade cloud security automation built for modern infrastructure.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card anim-fade-up">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <h3>Continuous Scanning</h3>
+                    <p>24/7 automated scanning of all cloud resources across AWS, Azure, and GCP with zero downtime impact.</p>
+                </div>
+                <div class="feature-card anim-fade-up delay-1">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    </div>
+                    <h3>Auto-Remediation</h3>
+                    <p>Low-risk misconfigurations are automatically fixed in real-time. No human intervention required.</p>
+                </div>
+                <div class="feature-card anim-fade-up delay-2">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                    </div>
+                    <h3>One-Click Fix</h3>
+                    <p>High-risk issues get intelligent fix suggestions. Review the remediation plan and apply with a single click.</p>
+                </div>
+                <div class="feature-card anim-fade-up">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+                    </div>
+                    <h3>Compliance Reports</h3>
+                    <p>Before/after compliance reports with CIS benchmarks, SOC 2, HIPAA, and PCI-DSS frameworks.</p>
+                </div>
+                <div class="feature-card anim-fade-up delay-1">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                    </div>
+                    <h3>Multi-Cloud Support</h3>
+                    <p>Unified security posture management across AWS, Azure, and GCP from a single pane of glass.</p>
+                </div>
+                <div class="feature-card anim-fade-up delay-2">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+                    </div>
+                    <h3>Real-Time Alerts</h3>
+                    <p>Instant notifications via Slack, PagerDuty, email, and webhooks when critical issues are detected.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== IMPACT STATS ===== -->
+    <section class="section section-impact" id="impact">
+        <div class="impact-bg">
+            <div class="gradient-orb orb-4"></div>
+            <div class="gradient-orb orb-5"></div>
+        </div>
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Proven Impact</span>
+                <h2 class="section-title">Security That <span class="gradient-text">Pays For Itself</span></h2>
+                <p class="section-desc">Preventing just one breach saves millions. Here's the impact of automated cloud security hardening.</p>
+            </div>
+
+            <div class="impact-grid">
+                <div class="impact-card anim-fade-up">
+                    <span class="impact-number">$<span class="stat-number" data-target="80">0</span>M+</span>
+                    <span class="impact-label">Potential Fines Prevented</span>
+                    <span class="impact-detail">Capital One breach — caused by a single misconfigured WAF</span>
+                </div>
+                <div class="impact-card anim-fade-up delay-1">
+                    <span class="impact-number"><span class="stat-number" data-target="99.7">0</span>%</span>
+                    <span class="impact-label">Compliance Score Achieved</span>
+                    <span class="impact-detail">Across CIS benchmarks, SOC 2, and PCI-DSS frameworks</span>
+                </div>
+                <div class="impact-card anim-fade-up delay-2">
+                    <span class="impact-number">&lt;<span class="stat-number" data-target="30">0</span>s</span>
+                    <span class="impact-label">Average Detection Time</span>
+                    <span class="impact-detail">From misconfiguration creation to detection and alert</span>
+                </div>
+                <div class="impact-card anim-fade-up delay-3">
+                    <span class="impact-number"><span class="stat-number" data-target="384">0</span>+</span>
+                    <span class="impact-label">Issues Auto-Remediated</span>
+                    <span class="impact-detail">Low-risk fixes applied automatically this month</span>
+                </div>
+            </div>
+
+            <div class="impact-cta anim-fade-up">
+                <div class="cta-card">
+                    <div class="cta-content">
+                        <h3>Don't wait for the next breach.</h3>
+                        <p>Start scanning your cloud environment in under 5 minutes.</p>
+                    </div>
+                    <a href="#hero" class="btn btn-primary btn-lg">
+                        Get Started Free
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="footer-gradient-line"></div>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="nav-logo">
+                        <svg class="logo-icon" viewBox="0 0 40 40" width="32" height="32">
+                            <path d="M20 2 L36 10 L36 26 L20 38 L4 26 L4 10 Z" fill="none" stroke="url(#logoGrad)" stroke-width="2.5"/>
+                            <path d="M20 8 L14 18 L20 16 L26 18 Z" fill="url(#logoGrad)" opacity="0.8"/>
+                            <path d="M14 18 L20 32 L20 16 Z" fill="url(#logoGrad)" opacity="0.6"/>
+                            <path d="M26 18 L20 32 L20 16 Z" fill="url(#logoGrad)" opacity="0.4"/>
+                        </svg>
+                        <span>ShieldAI</span>
+                    </a>
+                    <p class="footer-desc">Autonomous cloud security hardening for the modern enterprise. Prevent breaches before they happen.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#dashboard">Dashboard</a></li>
+                        <li><a href="#providers">Cloud Providers</a></li>
+                        <li><a href="#detections">Detections</a></li>
+                        <li><a href="#compliance">Compliance</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Changelog</a></li>
+                        <li><a href="#">Status Page</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 ShieldAI. All rights reserved.</p>
+                <div class="footer-socials">
+                    <a href="#" aria-label="Twitter">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    <a href="#" aria-label="GitHub">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <a href="#" aria-label="LinkedIn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
