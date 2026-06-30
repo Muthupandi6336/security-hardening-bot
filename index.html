@@ -42,7 +42,10 @@
                 <li><a href="#compliance">Compliance</a></li>
                 <li><a href="#features">Features</a></li>
             </ul>
-            <a href="#dashboard" class="nav-cta">Launch Console</a>
+            <button class="nav-settings-btn" id="settingsBtn" aria-label="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </button>
+            <a href="#dashboard" class="nav-cta" id="navCta">Launch Console</a>
             <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
                 <span></span><span></span><span></span>
             </button>
@@ -58,9 +61,9 @@
             <div class="hero-grid"></div>
         </div>
         <div class="hero-content">
-            <div class="hero-badge anim-fade-up">
+            <div class="hero-badge anim-fade-up" id="heroBadge">
                 <span class="pulse-dot"></span>
-                Actively Protecting 2,847 Cloud Resources
+                <span id="heroBadgeText">Configure Your Environment to Start</span>
             </div>
             <h1 class="hero-title anim-fade-up delay-1">
                 Security Posture<br>
@@ -71,32 +74,32 @@
                 Automatically fixes low-risk issues. Prevents breaches like Capital One's $80M fine.
             </p>
             <div class="hero-actions anim-fade-up delay-3">
-                <a href="#dashboard" class="btn btn-primary">
+                <button class="btn btn-primary" id="heroSetupBtn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    Launch Dashboard
-                </a>
+                    <span id="heroCta">Configure Your Environment</span>
+                </button>
                 <a href="#compliance" class="btn btn-ghost">
                     View Compliance Report →
                 </a>
             </div>
             <div class="hero-stats anim-fade-up delay-4">
                 <div class="hero-stat">
-                    <span class="stat-number" data-target="99.7">0</span><span class="stat-suffix">%</span>
+                    <div class="stat-value-row"><span class="stat-number" data-target="99.7">0</span><span class="stat-suffix">%</span></div>
                     <span class="stat-label">Uptime</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="hero-stat">
-                    <span class="stat-number" data-target="2847">0</span>
+                    <div class="stat-value-row"><span class="stat-number" data-target="0" id="statResources">0</span></div>
                     <span class="stat-label">Resources Scanned</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="hero-stat">
-                    <span class="stat-number" data-target="384">0</span>
+                    <div class="stat-value-row"><span class="stat-number" data-target="0" id="statFixed">0</span></div>
                     <span class="stat-label">Issues Auto-Fixed</span>
                 </div>
                 <div class="stat-divider"></div>
                 <div class="hero-stat">
-                    <span class="stat-number" data-target="28">0</span><span class="stat-suffix">s</span>
+                    <div class="stat-value-row"><span class="stat-number" data-target="28">0</span><span class="stat-suffix">s</span></div>
                     <span class="stat-label">Avg Detection Time</span>
                 </div>
             </div>
@@ -1043,6 +1046,135 @@
             </div>
         </div>
     </footer>
+
+    <!-- ===== COMPANY SETUP MODAL ===== -->
+    <div class="setup-modal-overlay" id="setupModal">
+        <div class="setup-modal">
+            <div class="setup-modal-header">
+                <div class="setup-modal-title">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#logoGrad)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <h2>Configure Your Environment</h2>
+                </div>
+                <button class="setup-close-btn" id="setupCloseBtn" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <p class="setup-subtitle">Enter your company infrastructure details. All data is stored locally in your browser and never sent to any server.</p>
+            <div class="setup-security-notice">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                <span>100% Local Storage — Your credentials never leave this device</span>
+            </div>
+            <form id="setupForm" class="setup-form">
+                <div class="setup-section">
+                    <h3 class="setup-section-title">Company Information</h3>
+                    <div class="setup-field">
+                        <label for="companyName">Company Name *</label>
+                        <input type="text" id="companyName" placeholder="e.g., Acme Corporation" required>
+                    </div>
+                </div>
+                <div class="setup-section">
+                    <h3 class="setup-section-title">Network Infrastructure</h3>
+                    <div class="setup-field">
+                        <label for="ipAddresses">IP Addresses <span class="field-hint">(comma-separated)</span></label>
+                        <textarea id="ipAddresses" rows="3" placeholder="e.g., 192.168.1.1, 10.0.0.5, 172.16.0.1, 203.0.113.50"></textarea>
+                    </div>
+                </div>
+                <div class="setup-section">
+                    <h3 class="setup-section-title">Cloud Providers</h3>
+                    <div class="setup-checkboxes">
+                        <label class="setup-checkbox">
+                            <input type="checkbox" id="providerAws" value="aws">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">AWS</span>
+                        </label>
+                        <label class="setup-checkbox">
+                            <input type="checkbox" id="providerAzure" value="azure">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">Microsoft Azure</span>
+                        </label>
+                        <label class="setup-checkbox">
+                            <input type="checkbox" id="providerGcp" value="gcp">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">Google Cloud Platform</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="setup-section" id="awsFields" style="display:none;">
+                    <h3 class="setup-section-title">AWS Configuration</h3>
+                    <div class="setup-field-row">
+                        <div class="setup-field">
+                            <label for="awsRoleArn">IAM Role ARN</label>
+                            <input type="text" id="awsRoleArn" placeholder="arn:aws:iam::123456789:role/SecurityBot">
+                        </div>
+                        <div class="setup-field">
+                            <label for="awsRegion">Primary Region</label>
+                            <select id="awsRegion">
+                                <option value="us-east-1">US East (N. Virginia)</option>
+                                <option value="us-west-2">US West (Oregon)</option>
+                                <option value="eu-west-1">EU (Ireland)</option>
+                                <option value="ap-south-1">Asia Pacific (Mumbai)</option>
+                                <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="setup-field">
+                        <label for="awsAccessKey">Access Key ID</label>
+                        <input type="password" id="awsAccessKey" placeholder="AKIA...">
+                    </div>
+                </div>
+                <div class="setup-section" id="azureFields" style="display:none;">
+                    <h3 class="setup-section-title">Azure Configuration</h3>
+                    <div class="setup-field">
+                        <label for="azureSubId">Subscription ID</label>
+                        <input type="text" id="azureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                    </div>
+                    <div class="setup-field">
+                        <label for="azureTenantId">Tenant ID</label>
+                        <input type="text" id="azureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                    </div>
+                </div>
+                <div class="setup-section" id="gcpFields" style="display:none;">
+                    <h3 class="setup-section-title">GCP Configuration</h3>
+                    <div class="setup-field">
+                        <label for="gcpProjectId">Project ID</label>
+                        <input type="text" id="gcpProjectId" placeholder="my-project-123">
+                    </div>
+                    <div class="setup-field">
+                        <label for="gcpServiceAccount">Service Account Email</label>
+                        <input type="text" id="gcpServiceAccount" placeholder="bot@my-project.iam.gserviceaccount.com">
+                    </div>
+                </div>
+                <div class="setup-section">
+                    <h3 class="setup-section-title">Scan Settings</h3>
+                    <div class="setup-field-row">
+                        <div class="setup-field">
+                            <label for="scanFrequency">Scan Frequency</label>
+                            <select id="scanFrequency">
+                                <option value="5">Every 5 minutes</option>
+                                <option value="15">Every 15 minutes</option>
+                                <option value="30">Every 30 minutes</option>
+                                <option value="60">Every 1 hour</option>
+                            </select>
+                        </div>
+                        <div class="setup-field">
+                            <label for="autoFix">Auto-Fix Low Risk</label>
+                            <select id="autoFix">
+                                <option value="yes">Enabled</option>
+                                <option value="no">Disabled (Manual Only)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="setup-actions">
+                    <button type="button" class="btn btn-ghost" id="setupCancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        Save & Start Scanning
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

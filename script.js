@@ -686,4 +686,301 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  /* ----------------------------------------------------------
+     16. COMPANY SETUP MODAL
+  ---------------------------------------------------------- */
+  const setupModal = document.getElementById('setupModal');
+  const setupForm = document.getElementById('setupForm');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const setupCloseBtn = document.getElementById('setupCloseBtn');
+  const setupCancelBtn = document.getElementById('setupCancelBtn');
+  const heroSetupBtn = document.getElementById('heroSetupBtn');
+  const heroBadgeText = document.getElementById('heroBadgeText');
+  const heroCta = document.getElementById('heroCta');
+  const navCta = document.getElementById('navCta');
+
+  // Provider checkbox toggles — show/hide provider-specific fields
+  const providerFieldsMap = {
+    aws: { checkbox: document.getElementById('providerAws'), fields: document.getElementById('awsFields') },
+    azure: { checkbox: document.getElementById('providerAzure'), fields: document.getElementById('azureFields') },
+    gcp: { checkbox: document.getElementById('providerGcp'), fields: document.getElementById('gcpFields') }
+  };
+
+  Object.values(providerFieldsMap).forEach(({ checkbox, fields }) => {
+    if (checkbox && fields) {
+      checkbox.addEventListener('change', () => {
+        fields.style.display = checkbox.checked ? 'block' : 'none';
+      });
+    }
+  });
+
+  function openSetupModal() {
+    if (setupModal) {
+      setupModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeSetupModal() {
+    if (setupModal) {
+      setupModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Open modal triggers
+  if (settingsBtn) settingsBtn.addEventListener('click', openSetupModal);
+  if (setupCloseBtn) setupCloseBtn.addEventListener('click', closeSetupModal);
+  if (setupCancelBtn) setupCancelBtn.addEventListener('click', closeSetupModal);
+
+  if (heroSetupBtn) {
+    heroSetupBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const config = loadConfig();
+      if (config) {
+        // Already configured — scroll to dashboard
+        const dashboard = document.getElementById('dashboard');
+        if (dashboard) {
+          const offset = 80;
+          const top = dashboard.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      } else {
+        openSetupModal();
+      }
+    });
+  }
+
+  // Close on overlay click
+  if (setupModal) {
+    setupModal.addEventListener('click', (e) => {
+      if (e.target === setupModal) closeSetupModal();
+    });
+  }
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && setupModal && setupModal.classList.contains('active')) {
+      closeSetupModal();
+    }
+  });
+
+  // Save config to localStorage
+  function saveConfig(config) {
+    localStorage.setItem('shieldai_config', JSON.stringify(config));
+  }
+
+  // Load config from localStorage
+  function loadConfig() {
+    const data = localStorage.getItem('shieldai_config');
+    return data ? JSON.parse(data) : null;
+  }
+
+  // Calculate resource count from IPs + cloud services
+  function calcResourceCount(config) {
+    const ipCount = config.ipAddresses ? config.ipAddresses.split(',').filter(ip => ip.trim()).length : 0;
+    let cloudMultiplier = 0;
+    if (config.providers) {
+      if (config.providers.includes('aws')) cloudMultiplier += 45;
+      if (config.providers.includes('azure')) cloudMultiplier += 38;
+      if (config.providers.includes('gcp')) cloudMultiplier += 32;
+    }
+    // Each IP represents ~6 scannable endpoints (ports, services, configs)
+    return Math.max(ipCount * 6 + cloudMultiplier, ipCount || 1);
+  }
+
+  // Apply config to dashboard — updates all dynamic elements
+  function applyConfig(config) {
+    const resourceCount = calcResourceCount(config);
+    const fixedCount = Math.floor(resourceCount * 0.12);
+
+    // Update hero badge
+    if (heroBadgeText) {
+      heroBadgeText.textContent = 'Actively Protecting ' + resourceCount.toLocaleString() + ' Resources — ' + config.companyName;
+    }
+
+    // Update hero CTA button text
+    if (heroCta) {
+      heroCta.textContent = 'Launch Dashboard';
+    }
+
+    // Update nav CTA text
+    if (navCta) {
+      navCta.textContent = config.companyName + ' Console';
+    }
+
+    // Update stat counters with real values
+    const statResources = document.getElementById('statResources');
+    const statFixed = document.getElementById('statFixed');
+    if (statResources) {
+      statResources.dataset.target = resourceCount;
+      statResources.dataset.animated = 'false';
+    }
+    if (statFixed) {
+      statFixed.dataset.target = fixedCount;
+      statFixed.dataset.animated = 'false';
+    }
+
+    // Re-trigger counter animation
+    statNumbers.forEach((el) => {
+      if (el.id === 'statResources' || el.id === 'statFixed') {
+        el.dataset.animated = 'false';
+        el.textContent = '0';
+        const section = el.closest('.hero');
+        if (section) {
+          const rect = section.getBoundingClientRect();
+          if (rect.top < window.innerHeight && rect.bottom > 0) {
+            animateCounter(el);
+          }
+        }
+      }
+    });
+
+    // Show/hide provider cards based on selection
+    const providerCards = document.querySelectorAll('.provider-card');
+    providerCards.forEach((card) => {
+      const provider = card.dataset.provider;
+      if (config.providers && config.providers.length > 0) {
+        card.style.display = config.providers.includes(provider) ? '' : 'none';
+      } else {
+        card.style.display = '';
+      }
+    });
+
+    // Adjust provider grid columns
+    const providerGrid = document.querySelector('.provider-grid');
+    if (providerGrid && config.providers) {
+      const count = config.providers.length || 3;
+      if (count === 1) {
+        providerGrid.style.gridTemplateColumns = '1fr';
+        providerGrid.style.maxWidth = '500px';
+        providerGrid.style.margin = '0 auto';
+      } else if (count === 2) {
+        providerGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        providerGrid.style.maxWidth = '900px';
+        providerGrid.style.margin = '0 auto';
+      } else {
+        providerGrid.style.gridTemplateColumns = '';
+        providerGrid.style.maxWidth = '';
+        providerGrid.style.margin = '';
+      }
+    }
+  }
+
+  // Handle form submission
+  if (setupForm) {
+    setupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const config = {
+        companyName: document.getElementById('companyName').value.trim(),
+        ipAddresses: document.getElementById('ipAddresses').value.trim(),
+        providers: [],
+        scanFrequency: document.getElementById('scanFrequency').value,
+        autoFix: document.getElementById('autoFix').value,
+        aws: {},
+        azure: {},
+        gcp: {}
+      };
+
+      // Collect selected providers and their config
+      if (document.getElementById('providerAws').checked) {
+        config.providers.push('aws');
+        config.aws = {
+          roleArn: document.getElementById('awsRoleArn').value.trim(),
+          region: document.getElementById('awsRegion').value,
+          accessKey: document.getElementById('awsAccessKey').value.trim()
+        };
+      }
+      if (document.getElementById('providerAzure').checked) {
+        config.providers.push('azure');
+        config.azure = {
+          subscriptionId: document.getElementById('azureSubId').value.trim(),
+          tenantId: document.getElementById('azureTenantId').value.trim()
+        };
+      }
+      if (document.getElementById('providerGcp').checked) {
+        config.providers.push('gcp');
+        config.gcp = {
+          projectId: document.getElementById('gcpProjectId').value.trim(),
+          serviceAccount: document.getElementById('gcpServiceAccount').value.trim()
+        };
+      }
+
+      if (!config.companyName) {
+        alert('Please enter your company name.');
+        return;
+      }
+
+      saveConfig(config);
+      applyConfig(config);
+      closeSetupModal();
+
+      // Show success toast
+      showToast('\u2705 ' + config.companyName + ' environment configured! Scanning ' + calcResourceCount(config) + ' resources...');
+    });
+  }
+
+  // Load saved config on page load
+  const savedConfig = loadConfig();
+  if (savedConfig) {
+    applyConfig(savedConfig);
+
+    // Pre-fill form fields from saved config
+    const companyNameInput = document.getElementById('companyName');
+    if (companyNameInput) companyNameInput.value = savedConfig.companyName || '';
+    const ipInput = document.getElementById('ipAddresses');
+    if (ipInput) ipInput.value = savedConfig.ipAddresses || '';
+
+    if (savedConfig.providers) {
+      savedConfig.providers.forEach((p) => {
+        const cbId = 'provider' + p.charAt(0).toUpperCase() + p.slice(1);
+        const cb = document.getElementById(cbId);
+        if (cb) {
+          cb.checked = true;
+          const fields = document.getElementById(p + 'Fields');
+          if (fields) fields.style.display = 'block';
+        }
+      });
+    }
+
+    // Restore AWS fields
+    if (savedConfig.aws && savedConfig.aws.roleArn) {
+      const el = document.getElementById('awsRoleArn');
+      if (el) el.value = savedConfig.aws.roleArn;
+    }
+    if (savedConfig.aws && savedConfig.aws.region) {
+      const el = document.getElementById('awsRegion');
+      if (el) el.value = savedConfig.aws.region;
+    }
+    // Restore Azure fields
+    if (savedConfig.azure && savedConfig.azure.subscriptionId) {
+      const el = document.getElementById('azureSubId');
+      if (el) el.value = savedConfig.azure.subscriptionId;
+    }
+    if (savedConfig.azure && savedConfig.azure.tenantId) {
+      const el = document.getElementById('azureTenantId');
+      if (el) el.value = savedConfig.azure.tenantId;
+    }
+    // Restore GCP fields
+    if (savedConfig.gcp && savedConfig.gcp.projectId) {
+      const el = document.getElementById('gcpProjectId');
+      if (el) el.value = savedConfig.gcp.projectId;
+    }
+    if (savedConfig.gcp && savedConfig.gcp.serviceAccount) {
+      const el = document.getElementById('gcpServiceAccount');
+      if (el) el.value = savedConfig.gcp.serviceAccount;
+    }
+    // Restore scan settings
+    const sf = document.getElementById('scanFrequency');
+    if (sf && savedConfig.scanFrequency) sf.value = savedConfig.scanFrequency;
+    const af = document.getElementById('autoFix');
+    if (af && savedConfig.autoFix) af.value = savedConfig.autoFix;
+  } else {
+    // No config — first visit, show setup prompt after 2 seconds
+    setTimeout(() => {
+      openSetupModal();
+    }, 2000);
+  }
+
 }); // end DOMContentLoaded
