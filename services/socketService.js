@@ -1,22 +1,6 @@
 const db = require('../db/database');
-const si = require('systeminformation');
 
 const init = (io, dbInstance) => {
-  // Push system stats every 2 seconds to all connected clients
-  setInterval(async () => {
-    try {
-      const cpu = await si.currentLoad();
-      const mem = await si.mem();
-      io.emit('system-stats', {
-        cpu: cpu.currentLoad.toFixed(1),
-        ram: ((mem.active / mem.total) * 100).toFixed(1),
-        connections: io.engine.clientsCount
-      });
-    } catch (e) {
-      console.error('Stats error:', e);
-    }
-  }, 2000);
-
   io.on('connection', (socket) => {
     console.log('New client connected via WebSocket:', socket.id);
 

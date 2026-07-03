@@ -2,20 +2,12 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
 const db = require('../db/database');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-shieldai-key';
 
-// Rate Limiter to prevent brute-force on login
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login requests per windowMs
-  message: { error: 'Too many login attempts from this IP, please try again after 15 minutes' }
-});
-
 // Login Endpoint
-router.post('/login', loginLimiter, (req, res) => {
+router.post('/login', (req, res) => {
   const { username, password } = req.body;
   
   if (!username || !password) {

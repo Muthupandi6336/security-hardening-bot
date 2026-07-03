@@ -36,31 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
           if (typeof renderNotifications === 'function') renderNotifications();
         }
       }
-    // System HUD Stats
-    socket.on('system-stats', (stats) => {
-      const cpuEl = document.getElementById('hud-cpu');
-      const ramEl = document.getElementById('hud-ram');
-      const connEl = document.getElementById('hud-conn');
-      if (cpuEl) cpuEl.textContent = stats.cpu;
-      if (ramEl) ramEl.textContent = stats.ram;
-      if (connEl) connEl.textContent = stats.connections;
-    });
-
-    // Live Hacker Terminal Logs
-    socket.on('raw-log', (logLine) => {
-      const termBody = document.getElementById('terminal-body');
-      if (termBody) {
-        const line = document.createElement('div');
-        line.className = 'term-line';
-        line.textContent = logLine;
-        termBody.appendChild(line);
-        // Auto-scroll to bottom
-        termBody.scrollTop = termBody.scrollHeight;
-        // Keep only last 100 lines to prevent DOM bloat
-        if (termBody.children.length > 100) {
-          termBody.removeChild(termBody.firstChild);
-        }
-      }
     });
   }
 
