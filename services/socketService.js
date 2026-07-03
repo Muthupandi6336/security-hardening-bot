@@ -4,28 +4,8 @@ const init = (io, dbInstance) => {
   io.on('connection', (socket) => {
     console.log('New client connected via WebSocket:', socket.id);
 
-    // Simulate sending real-time threat map attacks every 5 seconds
-    const threatInterval = setInterval(() => {
-      const attackOrigins = [
-        { name: 'Moscow', x: 720, y: 120 },
-        { name: 'Beijing', x: 940, y: 170 },
-        { name: 'Pyongyang', x: 970, y: 195 },
-        { name: 'Tehran', x: 740, y: 210 },
-        { name: 'São Paulo', x: 350, y: 400 }
-      ];
-      const infraTargets = [
-        { name: 'US-East', x: 280, y: 180 },
-        { name: 'EU-West', x: 560, y: 140 },
-        { name: 'AP-South', x: 880, y: 280 }
-      ];
-      const severities = ['critical', 'high', 'medium'];
-
-      const origin = attackOrigins[Math.floor(Math.random() * attackOrigins.length)];
-      const target = infraTargets[Math.floor(Math.random() * infraTargets.length)];
-      const severity = severities[Math.floor(Math.random() * severities.length)];
-
-      socket.emit('threat-alert', { origin, target, severity });
-    }, 5000);
+    // Real Threat Alerts are now handled by sshMonitor.js 
+    // which watches /var/log/auth.log and emits 'threat-alert' events directly via io.emit.
 
     // Simulate pushing a new notification occasionally
     const notifInterval = setInterval(() => {
@@ -39,7 +19,6 @@ const init = (io, dbInstance) => {
 
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);
-      clearInterval(threatInterval);
       clearInterval(notifInterval);
     });
   });

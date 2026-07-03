@@ -1183,9 +1183,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function launchAttack(inOrigin, inTarget, inSeverity) {
     if (!attackLinesGroup) return;
-    const origin = inOrigin || attackOrigins[Math.floor(Math.random() * attackOrigins.length)];
-    const target = inTarget || infraTargets[Math.floor(Math.random() * infraTargets.length)];
+
+    let origin = inOrigin || attackOrigins[Math.floor(Math.random() * attackOrigins.length)];
+    let target = inTarget || infraTargets[Math.floor(Math.random() * infraTargets.length)];
     const severity = inSeverity || ['critical', 'high', 'medium'][Math.floor(Math.random() * 3)];
+
+    // Convert real-world Lat/Lon to SVG Coordinates if provided
+    if (origin.lat !== undefined && origin.lon !== undefined) {
+      origin.x = 50 + ((origin.lon + 180) / 360) * 1100;
+      origin.y = ((90 - origin.lat) / 180) * 600;
+    }
+    if (target.lat !== undefined && target.lon !== undefined) {
+      target.x = 50 + ((target.lon + 180) / 360) * 1100;
+      target.y = ((90 - target.lat) / 180) * 600;
+    }
 
     const midX = (origin.x + target.x) / 2;
     const midY = Math.min(origin.y, target.y) - 40 - Math.random() * 60;
