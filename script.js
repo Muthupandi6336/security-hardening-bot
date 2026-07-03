@@ -1665,7 +1665,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ----------------------------------------------------------
      F8. PDF REPORT GENERATOR (jsPDF)
   ---------------------------------------------------------- */
-  const downloadReportBtn = document.getElementById('downloadReport');
+  // downloadReportBtn is already declared above
   const pdfOverlay = document.getElementById('pdfOverlay');
   const pdfProgressFill = document.getElementById('pdfProgressFill');
   const pdfProgressTextEl = document.getElementById('pdfProgressText');
