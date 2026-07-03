@@ -1181,16 +1181,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let blockedCount = 12000 + Math.floor(Math.random() * 3000);
 
-  function launchAttack() {
+  function launchAttack(inOrigin, inTarget, inSeverity) {
     if (!attackLinesGroup) return;
-    const origin = attackOrigins[Math.floor(Math.random() * attackOrigins.length)];
-    const target = infraTargets[Math.floor(Math.random() * infraTargets.length)];
-    const severities = ['critical', 'high', 'medium'];
-    const severity = severities[Math.floor(Math.random() * severities.length)];
+    const origin = inOrigin || attackOrigins[Math.floor(Math.random() * attackOrigins.length)];
+    const target = inTarget || infraTargets[Math.floor(Math.random() * infraTargets.length)];
+    const severity = inSeverity || ['critical', 'high', 'medium'][Math.floor(Math.random() * 3)];
 
     const midX = (origin.x + target.x) / 2;
     const midY = Math.min(origin.y, target.y) - 40 - Math.random() * 60;
 
+    // 1. Draw the attack line
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', `M${origin.x},${origin.y} Q${midX},${midY} ${target.x},${target.y}`);
     path.setAttribute('class', `attack-line ${severity}`);
@@ -1199,11 +1199,47 @@ document.addEventListener('DOMContentLoaded', () => {
     path.style.animation = 'attackFlow 2.5s ease forwards';
     attackLinesGroup.appendChild(path);
 
+    // 2. Add jumping signal head (comet dot)
+    const signal = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    signal.setAttribute('r', '4');
+    signal.setAttribute('fill', severity === 'critical' ? '#ff1744' : severity === 'high' ? '#ff9100' : '#ffea00');
+    signal.style.filter = 'drop-shadow(0 0 8px currentColor)';
+    signal.style.offsetPath = `path('M${origin.x},${origin.y} Q${midX},${midY} ${target.x},${target.y}')`;
+    signal.style.animation = 'signalJump 2.5s ease forwards';
+    attackLinesGroup.appendChild(signal);
+
+    // 3. Add radar ping at origin
+    const originPing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    originPing.setAttribute('cx', origin.x);
+    originPing.setAttribute('cy', origin.y);
+    originPing.setAttribute('r', '2');
+    originPing.setAttribute('class', 'radar-ping');
+    attackLinesGroup.appendChild(originPing);
+
+    // 4. Add radar ping at target after delay (when signal hits)
+    setTimeout(() => {
+      const targetPing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      targetPing.setAttribute('cx', target.x);
+      targetPing.setAttribute('cy', target.y);
+      targetPing.setAttribute('r', '2');
+      targetPing.setAttribute('class', `radar-ping target-ping-${severity}`);
+      attackLinesGroup.appendChild(targetPing);
+      setTimeout(() => targetPing.remove(), 1500);
+    }, 2200);
+
     blockedCount += Math.floor(Math.random() * 5) + 1;
     if (blockedAttacksEl) blockedAttacksEl.textContent = blockedCount.toLocaleString();
     if (activeThreatsEl) activeThreatsEl.textContent = Math.floor(Math.random() * 5) + 3;
 
-    setTimeout(() => { path.style.opacity = '0'; setTimeout(() => path.remove(), 500); }, 3000);
+    setTimeout(() => { 
+      path.style.opacity = '0'; 
+      signal.style.opacity = '0';
+      setTimeout(() => {
+        path.remove();
+        signal.remove();
+        originPing.remove();
+      }, 500); 
+    }, 3000);
   }
 
   if (attackLinesGroup) {

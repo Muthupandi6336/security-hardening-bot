@@ -235,21 +235,8 @@
                 </div>
                 <div class="threat-map-container">
                     <svg class="threat-map-svg" id="threatMapSvg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet">
-                        <!-- Simplified world map continents -->
-                        <g class="map-continents" opacity="0.15">
-                            <!-- North America -->
-                            <path d="M120,120 L220,80 L320,90 L340,130 L320,180 L280,220 L240,260 L200,300 L160,280 L120,240 L100,200 L90,160 Z" fill="currentColor" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                            <!-- South America -->
-                            <path d="M240,310 L300,300 L340,340 L360,400 L340,460 L300,500 L260,480 L240,440 L220,380 L230,340 Z" fill="currentColor" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                            <!-- Europe -->
-                            <path d="M500,80 L560,70 L620,80 L640,120 L620,160 L580,180 L540,170 L500,150 L490,120 Z" fill="currentColor" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                            <!-- Africa -->
-                            <path d="M520,200 L580,190 L620,220 L640,280 L620,360 L580,420 L540,400 L520,340 L510,280 L500,240 Z" fill="currentColor" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                            <!-- Asia -->
-                            <path d="M660,60 L780,50 L900,70 L980,100 L1000,150 L980,200 L940,240 L880,260 L800,250 L740,220 L700,180 L660,140 L640,100 Z" fill="currentColor" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                            <!-- Australia -->
-                            <path d="M900,380 L960,360 L1020,380 L1040,420 L1020,460 L960,470 L900,440 L880,410 Z" fill="currentColor" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                        </g>
+                        <!-- High-res world map -->
+                        <image href="assets/world.svg" x="50" y="0" width="1100" height="600" opacity="0.25" style="filter: invert(1) hue-rotate(180deg) sepia(1) saturate(5) brightness(0.5) contrast(1.2);" />
                         <!-- Grid -->
                         <g class="map-grid" opacity="0.05">
                             <line x1="0" y1="150" x2="1200" y2="150" stroke="currentColor" stroke-dasharray="4,8"/>
