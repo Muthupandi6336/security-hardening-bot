@@ -8,8 +8,8 @@ const { Server } = require('socket.io');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
 const socketService = require('./services/socketService');
-const sshMonitor = require('./services/sshMonitor');
 const db = require('./db/database'); // Initialize DB
+const helmet = require('helmet');
 
 const app = express();
 const server = http.createServer(app);
@@ -35,9 +35,6 @@ app.get('/', (req, res) => {
 
 // Socket.io initialization
 socketService.init(io, db);
-
-// Start Honeypot Monitoring
-sshMonitor.startMonitoring(io);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
