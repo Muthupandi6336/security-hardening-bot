@@ -7,6 +7,38 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // F10. AUTHENTICATION CHECK
+  const token = localStorage.getItem('shieldai_token');
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  // F11. REAL-TIME WEBSOCKETS
+  const socket = typeof io !== 'undefined' ? io() : null;
+  if (socket) {
+    socket.on('connect', () => console.log('Connected to Backend via WebSocket'));
+    
+    // Live Threat Alert
+    socket.on('threat-alert', (data) => {
+      if (typeof launchAttack === 'function') {
+        launchAttack(data.origin, data.target, data.severity);
+      }
+    });
+
+    // Live Notifications
+    socket.on('new-notification', (data) => {
+      if (typeof notifications !== 'undefined' && typeof updateBadge === 'function') {
+        notifications.unshift({ ...data, id: Date.now(), read: false });
+        if (notifications.length > 30) notifications.pop();
+        updateBadge();
+        if (document.getElementById('notifPanel') && document.getElementById('notifPanel').classList.contains('active')) {
+          if (typeof renderNotifications === 'function') renderNotifications();
+        }
+      }
+    });
+  }
+
   /* ----------------------------------------------------------
      1. Scroll Animations (Intersection Observer)
   ---------------------------------------------------------- */
@@ -1121,13 +1153,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Auto-add notification every 20s
-  setInterval(() => {
-    notifications.unshift(createNotification());
-    if (notifications.length > 30) notifications.pop();
-    updateBadge();
-    if (notifPanel && notifPanel.classList.contains('active')) renderNotifications(getCurrentNotifFilter());
-  }, 20000);
+  // WebSockets will now handle auto-adding notifications
+  // The local interval has been removed.
 
   renderNotifications();
   updateBadge();
@@ -1180,8 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (attackLinesGroup) {
-    setInterval(launchAttack, 2000 + Math.random() * 1500);
-    launchAttack();
+    // Local interval removed. Attack lines are drawn by WebSockets via socket.on('threat-alert')
   }
 
   // Counter increment
