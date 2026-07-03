@@ -17,6 +17,9 @@ function startMonitoring(io) {
         console.log(`[sshMonitor] Watching ${AUTH_LOG_PATH} for SSH brute force attacks...`);
 
         tail.on("line", async (data) => {
+            // Emit raw log to the terminal UI
+            io.emit('raw-log', data);
+
             // Regex to catch "Failed password for ..." or "Invalid user ... from <IP>"
             const failedRegex = /(?:Failed password for|Invalid user).*? from (\d{1,3}(?:\.\d{1,3}){3}) /;
             const match = data.match(failedRegex);

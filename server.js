@@ -10,6 +10,7 @@ const apiRoutes = require('./routes/api');
 const socketService = require('./services/socketService');
 const sshMonitor = require('./services/sshMonitor');
 const db = require('./db/database'); // Initialize DB
+const helmet = require('helmet');
 
 const app = express();
 const server = http.createServer(app);
@@ -20,6 +21,7 @@ const io = new Server(server, {
 });
 
 // Middleware
+app.use(helmet({ contentSecurityPolicy: false })); // Basic security headers, CSP disabled to allow CDNs
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
