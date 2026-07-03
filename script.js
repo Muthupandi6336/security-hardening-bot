@@ -983,4 +983,1024 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
   }
 
+  /* ============================================================
+     NEW FEATURES — 9 FEATURE MEGA BUILD (JavaScript)
+     ============================================================ */
+
+  /* ----------------------------------------------------------
+     F1. LIGHT / DARK THEME TOGGLE
+  ---------------------------------------------------------- */
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    const savedTheme = localStorage.getItem('shieldai_theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-theme');
+    } else if (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      document.body.classList.add('light-theme');
+    }
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.add('theme-transitioning');
+      document.body.classList.toggle('light-theme');
+      const isLight = document.body.classList.contains('light-theme');
+      localStorage.setItem('shieldai_theme', isLight ? 'light' : 'dark');
+      setTimeout(() => document.body.classList.remove('theme-transitioning'), 500);
+    });
+  }
+
+  /* ----------------------------------------------------------
+     F2. NOTIFICATION CENTER
+  ---------------------------------------------------------- */
+  const notifBtn = document.getElementById('notifBtn');
+  const notifPanel = document.getElementById('notifPanel');
+  const notifOverlay = document.getElementById('notifOverlay');
+  const notifCloseBtn = document.getElementById('notifCloseBtn');
+  const notifMarkAll = document.getElementById('notifMarkAll');
+  const notifList = document.getElementById('notifList');
+  const notifBadge = document.getElementById('notifBadge');
+  const notifEmpty = document.getElementById('notifEmpty');
+
+  const notifTemplates = [
+    { type: 'critical', title: 'Critical: Unrestricted DB Access', message: 'Security group prod-db-sg allows 0.0.0.0/0 on port 3306. Immediate action required.' },
+    { type: 'critical', title: 'Public S3 Bucket Detected', message: 'Bucket s3://client-data has public read access enabled. Data exposure risk.' },
+    { type: 'critical', title: 'Root Account Login Detected', message: 'AWS root account was used to sign in from IP 203.0.113.42.' },
+    { type: 'warning', title: 'SSL Certificate Expiring', message: 'Certificate for api.example.com expires in 7 days. Auto-renewal scheduled.' },
+    { type: 'warning', title: 'IAM Key Rotation Needed', message: 'Access key AKIA****3F7Q has not been rotated in 87 days.' },
+    { type: 'warning', title: 'Unusual API Call Pattern', message: 'Spike in DescribeInstances calls from role lambda-processor-role.' },
+    { type: 'info', title: 'Scan Complete: AWS US-East', message: 'Scanned 1,247 resources. 3 new issues found, 2 auto-remediated.' },
+    { type: 'info', title: 'Policy Update Applied', message: 'CIS Benchmark v1.5 policy rules have been updated across all regions.' },
+    { type: 'info', title: 'Auto-Fix: S3 Logging Enabled', message: 'Access logging automatically enabled for 4 S3 buckets.' },
+    { type: 'info', title: 'Weekly Report Generated', message: 'Your weekly security compliance report is ready for download.' },
+  ];
+
+  let notifications = [];
+  let notifIdCounter = 0;
+
+  function createNotification(templateIdx) {
+    const tmpl = notifTemplates[templateIdx !== undefined ? templateIdx : Math.floor(Math.random() * notifTemplates.length)];
+    const now = new Date();
+    return {
+      id: ++notifIdCounter,
+      type: tmpl.type,
+      title: tmpl.title,
+      message: tmpl.message,
+      time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: false
+    };
+  }
+
+  // Seed initial notifications
+  for (let i = 0; i < 5; i++) notifications.push(createNotification(i));
+
+  function renderNotifications(filter = 'all') {
+    if (!notifList) return;
+    const filtered = filter === 'all' ? notifications : notifications.filter(n => n.type === filter);
+    if (filtered.length === 0) {
+      notifList.innerHTML = '';
+      if (notifEmpty) notifEmpty.style.display = 'flex';
+      return;
+    }
+    if (notifEmpty) notifEmpty.style.display = 'none';
+    notifList.innerHTML = filtered.map(n => `
+      <div class="notif-item ${n.type} ${n.read ? '' : 'unread'}" data-id="${n.id}">
+        <div class="notif-item-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            ${n.type === 'critical' ? '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' : 
+              n.type === 'warning' ? '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' :
+              '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'}
+          </svg>
+        </div>
+        <div class="notif-item-content">
+          <div class="notif-item-title">${n.title}</div>
+          <div class="notif-item-message">${n.message}</div>
+          <div class="notif-item-time">${n.time}</div>
+        </div>
+        ${n.read ? '' : '<div class="unread-dot"></div>'}
+      </div>
+    `).join('');
+
+    notifList.querySelectorAll('.notif-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = parseInt(item.dataset.id);
+        const notif = notifications.find(n => n.id === id);
+        if (notif) { notif.read = true; updateBadge(); renderNotifications(getCurrentNotifFilter()); }
+      });
+    });
+  }
+
+  function updateBadge() {
+    const unread = notifications.filter(n => !n.read).length;
+    if (notifBadge) { notifBadge.textContent = unread > 0 ? unread : ''; notifBadge.setAttribute('data-count', unread); }
+  }
+
+  function getCurrentNotifFilter() {
+    const active = document.querySelector('.notif-tab-btn.active');
+    return active ? active.dataset.notifFilter : 'all';
+  }
+
+  function toggleNotifPanel(open) {
+    if (notifPanel) notifPanel.classList.toggle('active', open);
+    if (notifOverlay) notifOverlay.classList.toggle('active', open);
+  }
+
+  if (notifBtn) notifBtn.addEventListener('click', () => { toggleNotifPanel(true); renderNotifications(); });
+  if (notifCloseBtn) notifCloseBtn.addEventListener('click', () => toggleNotifPanel(false));
+  if (notifOverlay) notifOverlay.addEventListener('click', () => toggleNotifPanel(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') toggleNotifPanel(false); });
+
+  if (notifMarkAll) notifMarkAll.addEventListener('click', () => {
+    notifications.forEach(n => n.read = true);
+    updateBadge();
+    renderNotifications(getCurrentNotifFilter());
+  });
+
+  document.querySelectorAll('.notif-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.notif-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderNotifications(btn.dataset.notifFilter);
+    });
+  });
+
+  // Auto-add notification every 20s
+  setInterval(() => {
+    notifications.unshift(createNotification());
+    if (notifications.length > 30) notifications.pop();
+    updateBadge();
+    if (notifPanel && notifPanel.classList.contains('active')) renderNotifications(getCurrentNotifFilter());
+  }, 20000);
+
+  renderNotifications();
+  updateBadge();
+
+  /* ----------------------------------------------------------
+     F3. THREAT MAP — Live Attack Visualization
+  ---------------------------------------------------------- */
+  const attackLinesGroup = document.getElementById('attackLinesGroup');
+  const blockedAttacksEl = document.getElementById('blockedAttacks');
+  const activeThreatsEl = document.getElementById('activeThreats');
+
+  const attackOrigins = [
+    { name: 'Moscow', x: 720, y: 120 },
+    { name: 'Beijing', x: 940, y: 170 },
+    { name: 'Pyongyang', x: 970, y: 195 },
+    { name: 'Tehran', x: 740, y: 210 },
+    { name: 'São Paulo', x: 350, y: 400 }
+  ];
+  const infraTargets = [
+    { name: 'US-East', x: 280, y: 180 },
+    { name: 'EU-West', x: 560, y: 140 },
+    { name: 'AP-South', x: 880, y: 280 }
+  ];
+
+  let blockedCount = 12000 + Math.floor(Math.random() * 3000);
+
+  function launchAttack() {
+    if (!attackLinesGroup) return;
+    const origin = attackOrigins[Math.floor(Math.random() * attackOrigins.length)];
+    const target = infraTargets[Math.floor(Math.random() * infraTargets.length)];
+    const severities = ['critical', 'high', 'medium'];
+    const severity = severities[Math.floor(Math.random() * severities.length)];
+
+    const midX = (origin.x + target.x) / 2;
+    const midY = Math.min(origin.y, target.y) - 40 - Math.random() * 60;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M${origin.x},${origin.y} Q${midX},${midY} ${target.x},${target.y}`);
+    path.setAttribute('class', `attack-line ${severity}`);
+    path.setAttribute('stroke-dasharray', '600');
+    path.setAttribute('stroke-dashoffset', '600');
+    path.style.animation = 'attackFlow 2.5s ease forwards';
+    attackLinesGroup.appendChild(path);
+
+    blockedCount += Math.floor(Math.random() * 5) + 1;
+    if (blockedAttacksEl) blockedAttacksEl.textContent = blockedCount.toLocaleString();
+    if (activeThreatsEl) activeThreatsEl.textContent = Math.floor(Math.random() * 5) + 3;
+
+    setTimeout(() => { path.style.opacity = '0'; setTimeout(() => path.remove(), 500); }, 3000);
+  }
+
+  if (attackLinesGroup) {
+    setInterval(launchAttack, 2000 + Math.random() * 1500);
+    launchAttack();
+  }
+
+  // Counter increment
+  setInterval(() => {
+    blockedCount += Math.floor(Math.random() * 3) + 1;
+    if (blockedAttacksEl) blockedAttacksEl.textContent = blockedCount.toLocaleString();
+  }, 1000);
+
+  /* ----------------------------------------------------------
+     F4. SECURITY SCORE TIMELINE — Canvas Chart
+  ---------------------------------------------------------- */
+  const scoreCanvas = document.getElementById('scoreChart');
+  const chartTooltip = document.getElementById('chartTooltip');
+  const tooltipDate = document.getElementById('tooltipDate');
+  const tooltipScore = document.getElementById('tooltipScore');
+
+  let scoreData = [];
+  let currentRange = 30;
+
+  function generateScoreData(days) {
+    const data = [];
+    const now = new Date();
+    let score = 65 + Math.random() * 10;
+    for (let i = days; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      score += (Math.random() - 0.35) * 4;
+      score = Math.max(60, Math.min(99, score));
+      if (i < days * 0.3) score = Math.max(score, 85 + Math.random() * 8);
+      data.push({ date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), score: Math.round(score * 10) / 10 });
+    }
+    return data;
+  }
+
+  function drawChart(data) {
+    if (!scoreCanvas) return;
+    const ctx = scoreCanvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = scoreCanvas.parentElement.getBoundingClientRect();
+    scoreCanvas.width = rect.width * dpr;
+    scoreCanvas.height = 280 * dpr;
+    scoreCanvas.style.width = rect.width + 'px';
+    scoreCanvas.style.height = '280px';
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = 280;
+    const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartW = w - pad.left - pad.right;
+    const chartH = h - pad.top - pad.bottom;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const minScore = Math.floor(Math.min(...data.map(d => d.score)) / 5) * 5;
+    const maxScore = Math.ceil(Math.max(...data.map(d => d.score)) / 5) * 5;
+    const range = maxScore - minScore || 10;
+
+    // Grid lines
+    const isLight = document.body.classList.contains('light-theme');
+    ctx.strokeStyle = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    for (let i = 0; i <= 5; i++) {
+      const y = pad.top + (chartH / 5) * i;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+      ctx.fillStyle = isLight ? '#94a3b8' : '#666';
+      ctx.font = '11px Inter';
+      ctx.textAlign = 'right';
+      ctx.fillText((maxScore - (range / 5) * i).toFixed(0), pad.left - 8, y + 4);
+    }
+    ctx.setLineDash([]);
+
+    // Date labels
+    const step = Math.max(1, Math.floor(data.length / 8));
+    ctx.fillStyle = isLight ? '#94a3b8' : '#666';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'center';
+    data.forEach((d, i) => {
+      if (i % step === 0) {
+        const x = pad.left + (i / (data.length - 1)) * chartW;
+        ctx.fillText(d.date, x, h - pad.bottom + 20);
+      }
+    });
+
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
+    grad.addColorStop(0, 'rgba(76, 201, 240, 0.25)');
+    grad.addColorStop(1, 'rgba(76, 201, 240, 0)');
+
+    ctx.beginPath();
+    data.forEach((d, i) => {
+      const x = pad.left + (i / (data.length - 1)) * chartW;
+      const y = pad.top + chartH - ((d.score - minScore) / range) * chartH;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(pad.left + chartW, h - pad.bottom);
+    ctx.lineTo(pad.left, h - pad.bottom);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    const lineGrad = ctx.createLinearGradient(pad.left, 0, w - pad.right, 0);
+    lineGrad.addColorStop(0, '#4cc9f0');
+    lineGrad.addColorStop(0.5, '#7209b7');
+    lineGrad.addColorStop(1, '#f72585');
+    ctx.beginPath();
+    data.forEach((d, i) => {
+      const x = pad.left + (i / (data.length - 1)) * chartW;
+      const y = pad.top + chartH - ((d.score - minScore) / range) * chartH;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = lineGrad;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    // Dots
+    data.forEach((d, i) => {
+      const x = pad.left + (i / (data.length - 1)) * chartW;
+      const y = pad.top + chartH - ((d.score - minScore) / range) * chartH;
+      if (data.length <= 30 || i % Math.max(1, Math.floor(data.length / 20)) === 0) {
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#4cc9f0';
+        ctx.fill();
+      }
+    });
+
+    // Update stats
+    const current = data[data.length - 1].score;
+    const first = data[0].score;
+    const change = ((current - first) / first * 100).toFixed(1);
+    const best = Math.max(...data.map(d => d.score));
+    const worst = Math.min(...data.map(d => d.score));
+
+    const currentScoreEl = document.getElementById('currentScore');
+    const scoreChangeEl = document.getElementById('scoreChange');
+    const bestScoreEl = document.getElementById('bestScore');
+    const worstScoreEl = document.getElementById('worstScore');
+
+    if (currentScoreEl) currentScoreEl.textContent = current.toFixed(1);
+    if (scoreChangeEl) {
+      scoreChangeEl.textContent = (change >= 0 ? '+' : '') + change + '%';
+      scoreChangeEl.className = 'score-stat-value ' + (change >= 0 ? 'trend-up' : 'trend-down');
+    }
+    if (bestScoreEl) bestScoreEl.textContent = best.toFixed(1);
+    if (worstScoreEl) worstScoreEl.textContent = worst.toFixed(1);
+
+    // Tooltip on hover
+    if (scoreCanvas) {
+      scoreCanvas.onmousemove = (e) => {
+        const rect2 = scoreCanvas.getBoundingClientRect();
+        const mx = e.clientX - rect2.left;
+        const idx = Math.round(((mx - pad.left) / chartW) * (data.length - 1));
+        if (idx >= 0 && idx < data.length && chartTooltip) {
+          chartTooltip.style.display = 'block';
+          chartTooltip.style.left = (mx + 10) + 'px';
+          const y = pad.top + chartH - ((data[idx].score - minScore) / range) * chartH;
+          chartTooltip.style.top = (y - 40) + 'px';
+          if (tooltipDate) tooltipDate.textContent = data[idx].date;
+          if (tooltipScore) tooltipScore.textContent = data[idx].score.toFixed(1);
+        }
+      };
+      scoreCanvas.onmouseleave = () => { if (chartTooltip) chartTooltip.style.display = 'none'; };
+    }
+  }
+
+  scoreData = generateScoreData(90);
+  function updateChart(range) {
+    currentRange = range;
+    const sliced = scoreData.slice(-range);
+    drawChart(sliced);
+  }
+
+  document.querySelectorAll('.time-range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.time-range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateChart(parseInt(btn.dataset.range));
+    });
+  });
+
+  // Draw chart when section is visible
+  const scoreSection = document.getElementById('scoretimeline');
+  if (scoreSection && scoreCanvas) {
+    const chartObs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) { updateChart(currentRange); chartObs.unobserve(scoreSection); }
+    }, { threshold: 0.2 });
+    chartObs.observe(scoreSection);
+    window.addEventListener('resize', () => updateChart(currentRange));
+  }
+
+  /* ----------------------------------------------------------
+     F5. AI REMEDIATION CHAT
+  ---------------------------------------------------------- */
+  const chatFab = document.getElementById('chatFab');
+  const chatPanel = document.getElementById('chatPanel');
+  const chatMinimize = document.getElementById('chatMinimize');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const chatMessages = document.getElementById('chatMessages');
+
+  const chatResponses = {
+    'open ports': '🔒 **Securing Open Ports:**\n\n1. **Audit**: Run `nmap -sV target_ip` to identify open ports and services\n2. **Close unnecessary ports** via security groups / firewall rules\n3. **Restrict access**: Limit source IPs to known CIDR ranges (e.g., your VPC CIDR)\n4. **Use bastion hosts** for SSH (port 22) instead of direct access\n5. **Enable port knocking** or VPN for sensitive services\n6. **Monitor**: Set up alerts for new port openings\n\n⚡ ShieldAI can auto-close commonly exploited ports like 23 (Telnet), 445 (SMB), and 3389 (RDP).',
+    'iam': '🔑 **IAM Best Practices:**\n\n1. **Least Privilege**: Grant only the minimum permissions needed\n2. **Enable MFA** on all accounts, especially root/admin\n3. **Rotate credentials** every 90 days (ShieldAI monitors this)\n4. **Use IAM Roles** instead of long-term access keys\n5. **Implement SCPs** (Service Control Policies) for organization-wide guardrails\n6. **Audit regularly**: Use IAM Access Analyzer\n7. **Never use root account** for daily operations\n\n🛡️ ShieldAI automatically flags IAM violations and suggests scoped policies.',
+    'zero trust': '🛡️ **Zero Trust Architecture:**\n\nZero Trust operates on "never trust, always verify":\n\n1. **Verify every request** — authenticate & authorize all users, devices, and workloads\n2. **Microsegmentation** — isolate workloads and limit lateral movement\n3. **Least privilege access** — just-in-time, just-enough access\n4. **Continuous monitoring** — real-time threat detection & response\n5. **Assume breach** — design systems expecting attackers are already inside\n\n🏗️ Use ShieldAI\'s Policy Builder to create Zero Trust rules with drag-and-drop!',
+    'report': '📊 **Generating Reports:**\n\n1. Go to the **Compliance Report** section\n2. Click **"Download Full Report (PDF)"**\n3. ShieldAI generates a multi-page PDF with:\n   - Executive Summary\n   - Compliance scores (before/after)\n   - Top findings by severity\n   - Remediation recommendations\n4. **Schedule Weekly Reports** for automated delivery\n\n📅 Reports include CIS Benchmark, SOC 2, HIPAA, and PCI-DSS frameworks.',
+    's3': '🪣 **S3 Security Hardening:**\n\n1. **Block Public Access** — enable S3 Block Public Access at the account level\n2. **Enable Encryption** — use SSE-S3 or SSE-KMS for at-rest encryption\n3. **Enable Versioning** — protect against accidental deletion\n4. **Enable Access Logging** — track all requests to your buckets\n5. **Use Bucket Policies** — restrict access to specific VPC endpoints\n6. **Enable MFA Delete** — require MFA to delete objects\n\n⚡ ShieldAI auto-remediates public bucket access and missing encryption.',
+    'encryption': '🔐 **Encryption Best Practices:**\n\n1. **At Rest**: Enable encryption for all storage (S3, RDS, EBS, GCS)\n2. **In Transit**: Enforce TLS 1.2+ on all connections\n3. **Key Management**: Use managed KMS (AWS KMS, Azure Key Vault, GCP KMS)\n4. **Key Rotation**: Enable automatic annual rotation\n5. **Certificate Management**: Auto-renew SSL/TLS certificates\n\n🛡️ ShieldAI monitors encryption status across all resources.',
+    'firewall': '🧱 **Firewall Best Practices:**\n\n1. **Default Deny** — block all traffic by default\n2. **Whitelist approach** — only allow known good traffic\n3. **Segment networks** — separate prod/staging/dev environments\n4. **Use WAF** — protect web apps from OWASP Top 10\n5. **Log everything** — enable flow logs for all VPCs\n6. **Regular audits** — review rules quarterly\n\n🔥 ShieldAI detects overly permissive security group rules automatically.',
+    'compliance': '📋 **Compliance Frameworks:**\n\n• **CIS Benchmarks** — Configuration hardening guidelines\n• **SOC 2** — Security, availability, processing integrity\n• **HIPAA** — Healthcare data protection requirements\n• **PCI-DSS** — Payment card industry standards\n• **NIST 800-53** — Federal security controls\n\n📊 ShieldAI maps your security posture to all major frameworks and generates gap analysis reports.'
+  };
+
+  const defaultResponse = "🤔 That's a great question! While I don't have a specific answer for that, I can help you with:\n\n• **Open ports** security\n• **IAM** best practices\n• **Zero Trust** architecture\n• **S3/Storage** hardening\n• **Encryption** standards\n• **Firewall** rules\n• **Compliance** frameworks\n• **Report** generation\n\nTry asking about any of these topics!";
+
+  function addChatMessage(content, isUser = false) {
+    if (!chatMessages) return;
+    const div = document.createElement('div');
+    div.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+    div.innerHTML = `
+      <div class="chat-avatar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          ${isUser ? '<circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>' : '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'}
+        </svg>
+      </div>
+      <div class="chat-bubble">${content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>
+    `;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function showTyping() {
+    if (!chatMessages) return;
+    const div = document.createElement('div');
+    div.className = 'chat-message bot';
+    div.id = 'typingMsg';
+    div.innerHTML = `<div class="chat-avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="chat-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function getBotResponse(query) {
+    const q = query.toLowerCase();
+    for (const [key, response] of Object.entries(chatResponses)) {
+      if (q.includes(key) || key.split(' ').some(w => q.includes(w))) return response;
+    }
+    if (q.includes('access') || q.includes('permission')) return chatResponses['iam'];
+    if (q.includes('bucket')) return chatResponses['s3'];
+    return defaultResponse;
+  }
+
+  function sendChatMessage() {
+    if (!chatInput) return;
+    const text = chatInput.value.trim();
+    if (!text) return;
+    addChatMessage(text, true);
+    chatInput.value = '';
+    showTyping();
+    setTimeout(() => {
+      const typing = document.getElementById('typingMsg');
+      if (typing) typing.remove();
+      addChatMessage(getBotResponse(text));
+    }, 800 + Math.random() * 800);
+  }
+
+  if (chatFab) chatFab.addEventListener('click', () => chatPanel && chatPanel.classList.toggle('active'));
+  if (chatMinimize) chatMinimize.addEventListener('click', () => chatPanel && chatPanel.classList.remove('active'));
+  if (chatSendBtn) chatSendBtn.addEventListener('click', sendChatMessage);
+  if (chatInput) chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+  document.querySelectorAll('.chat-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      if (chatInput) { chatInput.value = chip.dataset.message; sendChatMessage(); }
+      if (chatPanel) chatPanel.classList.add('active');
+    });
+  });
+
+  /* ----------------------------------------------------------
+     F6. VULNERABILITY SCANNER SIMULATION
+  ---------------------------------------------------------- */
+  const startScanBtn = document.getElementById('startScanBtn');
+  const scanIpInput = document.getElementById('scanIpInput');
+  const scanProgress = document.getElementById('scanProgress');
+  const scanProgressText = document.getElementById('scanProgressText');
+  const scanProgressPercent = document.getElementById('scanProgressPercent');
+  const scanOverallBar = document.getElementById('scanOverallBar');
+  const scanResults = document.getElementById('scanResults');
+  const exportScanBtn = document.getElementById('exportScanBtn');
+
+  const commonPorts = [21,22,23,25,53,80,110,143,443,445,993,995,3306,3389,5432,8080,8443,27017];
+  const portNames = {21:'FTP',22:'SSH',23:'Telnet',25:'SMTP',53:'DNS',80:'HTTP',110:'POP3',143:'IMAP',443:'HTTPS',445:'SMB',993:'IMAPS',995:'POP3S',3306:'MySQL',3389:'RDP',5432:'PostgreSQL',8080:'HTTP-Alt',8443:'HTTPS-Alt',27017:'MongoDB'};
+  const criticalPorts = [3306,3389,27017,445];
+  const highPorts = [22,23,21];
+  const medPorts = [8080,8443,25];
+
+  function getPortRisk(port) {
+    if (criticalPorts.includes(port)) return 'critical';
+    if (highPorts.includes(port)) return 'high';
+    if (medPorts.includes(port)) return 'medium';
+    return 'low';
+  }
+
+  let scanResultsData = [];
+
+  if (startScanBtn) {
+    startScanBtn.addEventListener('click', async () => {
+      let ipsText = scanIpInput ? scanIpInput.value.trim() : '';
+      if (!ipsText) ipsText = '192.168.1.1, 10.0.0.5, 172.16.0.1';
+      const ips = ipsText.split(/[,\n]+/).map(ip => ip.trim()).filter(ip => ip);
+
+      startScanBtn.classList.add('scanning');
+      startScanBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Scanning...';
+
+      if (scanProgress) scanProgress.style.display = 'block';
+      if (scanResults) scanResults.innerHTML = '';
+      if (exportScanBtn) exportScanBtn.style.display = 'none';
+      scanResultsData = [];
+
+      const totalPorts = ips.length * commonPorts.length;
+      let scanned = 0;
+
+      for (const ip of ips) {
+        const ipResults = { ip, ports: [] };
+        for (const port of commonPorts) {
+          await new Promise(r => setTimeout(r, 80 + Math.random() * 200));
+          const rand = Math.random();
+          const status = rand < 0.12 ? 'open' : rand < 0.88 ? 'closed' : 'filtered';
+          ipResults.ports.push({ port, service: portNames[port], status, risk: status === 'open' ? getPortRisk(port) : null });
+          scanned++;
+          const pct = Math.round((scanned / totalPorts) * 100);
+          if (scanOverallBar) scanOverallBar.style.width = pct + '%';
+          if (scanProgressPercent) scanProgressPercent.textContent = pct + '%';
+          if (scanProgressText) scanProgressText.textContent = `Scanning ${ip} — Port ${port} (${portNames[port]})`;
+        }
+        scanResultsData.push(ipResults);
+      }
+
+      // Render results
+      if (scanResults) {
+        scanResults.innerHTML = scanResultsData.map(r => {
+          const openPorts = r.ports.filter(p => p.status === 'open');
+          const hasIssues = openPorts.length > 0;
+          return `
+            <div class="scan-result-card">
+              <h4>${r.ip} <span class="ip-status ${hasIssues ? 'has-issues' : 'clean'}">${hasIssues ? openPorts.length + ' open' : 'Clean'}</span></h4>
+              <div class="port-list">
+                ${r.ports.filter(p => p.status !== 'closed').map(p => `
+                  <div class="port-item ${p.status}">
+                    ${p.port}/${p.service}
+                    ${p.risk ? `<span class="port-risk ${p.risk}">${p.risk}</span>` : ''}
+                  </div>
+                `).join('')}
+                ${r.ports.filter(p => p.status !== 'closed').length === 0 ? '<span style="color:var(--text-muted);font-size:0.8rem;">All ports closed ✓</span>' : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (scanProgressText) scanProgressText.textContent = 'Scan complete!';
+      startScanBtn.classList.remove('scanning');
+      startScanBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Start Scan';
+      if (exportScanBtn) exportScanBtn.style.display = 'flex';
+      if (typeof showToast === 'function') showToast('Scan complete! ' + scanResultsData.reduce((a, r) => a + r.ports.filter(p => p.status === 'open').length, 0) + ' open ports found.');
+    });
+  }
+
+  if (exportScanBtn) {
+    exportScanBtn.addEventListener('click', () => {
+      let csv = 'IP,Port,Service,Status,Risk\n';
+      scanResultsData.forEach(r => {
+        r.ports.forEach(p => {
+          csv += `${r.ip},${p.port},${p.service},${p.status},${p.risk || 'N/A'}\n`;
+        });
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `shieldai-scan-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      if (typeof showToast === 'function') showToast('Scan results exported as CSV!');
+    });
+  }
+
+  /* ----------------------------------------------------------
+     F7. AUDIT LOG TIMELINE
+  ---------------------------------------------------------- */
+  const auditTimeline = document.getElementById('auditTimeline');
+  const loadMoreAudit = document.getElementById('loadMoreAudit');
+
+  const auditTemplates = [
+    { type: 'scan', title: 'Full Infrastructure Scan', desc: 'Scanned 2,847 resources across 3 cloud providers. 12 issues detected.', resource: 'All Regions', user: 'ShieldAI Bot' },
+    { type: 'scan', title: 'IAM Policy Audit', desc: 'Reviewed 342 IAM policies. 5 overly permissive roles identified.', resource: 'IAM', user: 'ShieldAI Bot' },
+    { type: 'fix', title: 'S3 Bucket Logging Enabled', desc: 'Auto-remediation: Enabled access logging for 4 S3 buckets.', resource: 's3://client-data', user: 'Auto-Fix' },
+    { type: 'fix', title: 'Security Group Restricted', desc: 'Removed 0.0.0.0/0 inbound rule on port 22 for sg-0a1b2c3d.', resource: 'sg-0a1b2c3d', user: 'Admin' },
+    { type: 'alert', title: 'Critical: Public Database', desc: 'RDS instance prod-db-01 has public accessibility enabled.', resource: 'prod-db-01', user: 'ShieldAI Bot' },
+    { type: 'alert', title: 'Brute Force Attempt Detected', desc: '47 failed SSH login attempts from 203.0.113.42 in 5 minutes.', resource: 'bastion-host', user: 'IDS' },
+    { type: 'policy', title: 'CIS Benchmark Updated', desc: 'CIS AWS Foundations v1.5 policy rules updated and applied.', resource: 'Policy Engine', user: 'Admin' },
+    { type: 'policy', title: 'New Geo-Block Rule Added', desc: 'Traffic from North Korea (KP) blocked at all ingress points.', resource: 'WAF', user: 'Admin' },
+    { type: 'fix', title: 'SSL Certificate Renewed', desc: 'Auto-renewed certificate for *.example.com (expires 2027-01-15).', resource: 'ACM', user: 'Auto-Fix' },
+    { type: 'scan', title: 'Compliance Gap Analysis', desc: 'Generated SOC 2 compliance report. Score: 94.2% (up from 89.1%).', resource: 'Compliance Engine', user: 'ShieldAI Bot' },
+  ];
+
+  let auditEntries = [];
+  let auditFilterType = 'all';
+
+  function generateAuditEntry() {
+    const tmpl = auditTemplates[Math.floor(Math.random() * auditTemplates.length)];
+    const hoursAgo = Math.floor(Math.random() * 168);
+    const time = new Date(Date.now() - hoursAgo * 3600000);
+    return {
+      ...tmpl,
+      time: time,
+      timeStr: hoursAgo < 1 ? 'Just now' : hoursAgo < 24 ? `${hoursAgo}h ago` : `${Math.floor(hoursAgo/24)}d ago`,
+      result: Math.random() > 0.15 ? 'success' : 'warning'
+    };
+  }
+
+  for (let i = 0; i < 12; i++) auditEntries.push(generateAuditEntry());
+  auditEntries.sort((a, b) => b.time - a.time);
+
+  function renderAuditTimeline(filter) {
+    if (!auditTimeline) return;
+    const line = auditTimeline.querySelector('.audit-timeline-line');
+    auditTimeline.innerHTML = '';
+    if (line) auditTimeline.appendChild(line);
+    else {
+      const newLine = document.createElement('div');
+      newLine.className = 'audit-timeline-line';
+      auditTimeline.appendChild(newLine);
+    }
+
+    const filtered = filter === 'all' ? auditEntries : auditEntries.filter(e => e.type === filter);
+    filtered.forEach((entry, idx) => {
+      const div = document.createElement('div');
+      div.className = 'audit-item';
+      div.style.animationDelay = (idx * 0.05) + 's';
+      div.innerHTML = `
+        <div class="audit-dot ${entry.type}"></div>
+        <div class="audit-card" data-idx="${idx}">
+          <div class="audit-card-header">
+            <span class="audit-card-type ${entry.type}">${entry.type}</span>
+            <span class="audit-card-time">${entry.timeStr}</span>
+          </div>
+          <div class="audit-card-title">${entry.title}</div>
+          <div class="audit-card-details">
+            <p>${entry.desc}</p>
+            <div class="audit-detail-row"><span>Resource:</span> <span>${entry.resource}</span></div>
+            <div class="audit-detail-row"><span>Initiated by:</span> <span>${entry.user}</span></div>
+          </div>
+        </div>
+      `;
+      auditTimeline.appendChild(div);
+    });
+
+    auditTimeline.querySelectorAll('.audit-card').forEach(card => {
+      card.addEventListener('click', () => card.classList.toggle('expanded'));
+    });
+  }
+
+  renderAuditTimeline('all');
+
+  document.querySelectorAll('[data-audit-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-audit-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      auditFilterType = btn.dataset.auditFilter;
+      renderAuditTimeline(auditFilterType);
+    });
+  });
+
+  if (loadMoreAudit) {
+    loadMoreAudit.addEventListener('click', () => {
+      for (let i = 0; i < 6; i++) auditEntries.push(generateAuditEntry());
+      auditEntries.sort((a, b) => b.time - a.time);
+      renderAuditTimeline(auditFilterType);
+      if (typeof showToast === 'function') showToast('Loaded 6 more audit events');
+    });
+  }
+
+  /* ----------------------------------------------------------
+     F8. PDF REPORT GENERATOR (jsPDF)
+  ---------------------------------------------------------- */
+  const downloadReportBtn = document.getElementById('downloadReport');
+  const pdfOverlay = document.getElementById('pdfOverlay');
+  const pdfProgressFill = document.getElementById('pdfProgressFill');
+  const pdfProgressTextEl = document.getElementById('pdfProgressText');
+
+  if (downloadReportBtn) {
+    downloadReportBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      if (typeof window.jspdf === 'undefined' && typeof jspdf === 'undefined') {
+        if (typeof showToast === 'function') showToast('PDF library loading... Please try again in a moment.');
+        return;
+      }
+
+      if (pdfOverlay) pdfOverlay.style.display = 'flex';
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      const w = doc.internal.pageSize.getWidth();
+      const savedConfig = JSON.parse(localStorage.getItem('shieldai_config') || '{}');
+      const company = savedConfig.companyName || 'Your Organization';
+      const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      const steps = [
+        { text: 'Creating cover page...', pct: 15 },
+        { text: 'Adding executive summary...', pct: 35 },
+        { text: 'Generating compliance data...', pct: 55 },
+        { text: 'Building findings table...', pct: 75 },
+        { text: 'Adding recommendations...', pct: 90 },
+        { text: 'Finalizing report...', pct: 100 },
+      ];
+
+      for (const step of steps) {
+        if (pdfProgressFill) pdfProgressFill.style.width = step.pct + '%';
+        if (pdfProgressTextEl) pdfProgressTextEl.textContent = step.text;
+        await new Promise(r => setTimeout(r, 400));
+      }
+
+      // Page 1 — Cover
+      doc.setFillColor(10, 14, 23);
+      doc.rect(0, 0, w, 297, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(28);
+      doc.text('Security Compliance', w/2, 100, { align: 'center' });
+      doc.text('Report', w/2, 115, { align: 'center' });
+      doc.setFontSize(14);
+      doc.setTextColor(76, 201, 240);
+      doc.text(company, w/2, 140, { align: 'center' });
+      doc.setTextColor(160, 160, 160);
+      doc.setFontSize(11);
+      doc.text(today, w/2, 155, { align: 'center' });
+      doc.text('Generated by ShieldAI Security Bot', w/2, 170, { align: 'center' });
+
+      // Page 2 — Executive Summary
+      doc.addPage();
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, w, 297, 'F');
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(20);
+      doc.text('Executive Summary', 20, 30);
+      doc.setFontSize(11);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Overall Security Score: 94.2%`, 20, 50);
+      doc.text(`Resources Scanned: 2,847`, 20, 60);
+      doc.text(`Issues Found: 24 (3 Critical, 6 High, 8 Medium, 7 Low)`, 20, 70);
+      doc.text(`Issues Auto-Remediated: 7`, 20, 80);
+      doc.text(`Scan Coverage: 100%`, 20, 90);
+      doc.text(`Report Period: Last 30 Days`, 20, 100);
+
+      // Page 3 — Compliance
+      doc.addPage();
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, w, 297, 'F');
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(20);
+      doc.text('Compliance Breakdown', 20, 30);
+      doc.setFontSize(11);
+      const categories = [
+        ['IAM & Access Control', '45%', '96%'],
+        ['Network Security', '58%', '98%'],
+        ['Data Storage', '71%', '99%'],
+        ['Encryption', '64%', '97%'],
+        ['Logging & Monitoring', '52%', '95%'],
+      ];
+      doc.setTextColor(71, 85, 105);
+      doc.text('Category', 20, 50);
+      doc.text('Before', 110, 50);
+      doc.text('After', 150, 50);
+      categories.forEach((c, i) => {
+        const y = 62 + i * 12;
+        doc.text(c[0], 20, y);
+        doc.setTextColor(255, 23, 68); doc.text(c[1], 110, y);
+        doc.setTextColor(0, 230, 118); doc.text(c[2], 150, y);
+        doc.setTextColor(71, 85, 105);
+      });
+
+      // Page 4 — Top Findings
+      doc.addPage();
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, w, 297, 'F');
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(20);
+      doc.text('Top Security Findings', 20, 30);
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      const findings = [
+        ['CRITICAL', 'prod-db-sg', 'Unrestricted DB access (0.0.0.0/0:3306)', 'Open'],
+        ['CRITICAL', 'admin-role', 'IAM full admin without MFA', 'Open'],
+        ['CRITICAL', 'gcs-backup-prod', 'Public GCS bucket', 'Open'],
+        ['HIGH', 's3://client-data', 'Versioning disabled', 'Open'],
+        ['HIGH', 'webapp-nsg', 'SSH open to any source', 'Open'],
+        ['HIGH', 'prod-rds-01', 'Encryption at rest disabled', 'Open'],
+      ];
+      let fy = 45;
+      findings.forEach(f => {
+        doc.text(`[${f[0]}] ${f[1]} — ${f[2]} (${f[3]})`, 20, fy);
+        fy += 10;
+      });
+
+      // Page 5 — Recommendations
+      doc.addPage();
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, w, 297, 'F');
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(20);
+      doc.text('Recommendations', 20, 30);
+      doc.setFontSize(10);
+      doc.setTextColor(71, 85, 105);
+      const recs = [
+        '1. Immediately restrict security group prod-db-sg to VPC CIDR only',
+        '2. Add MFA requirement to admin-role IAM policy',
+        '3. Remove allUsers binding from gcs-backup-prod bucket',
+        '4. Enable S3 versioning on all production data buckets',
+        '5. Restrict SSH access to bastion host IP ranges only',
+        '6. Enable RDS encryption using AWS KMS',
+        '7. Enable CloudTrail log file validation',
+        '8. Enable VPC Flow Logs for all production VPCs',
+        '9. Implement network policy enforcement on GKE clusters',
+        '10. Schedule weekly automated compliance reports',
+      ];
+      recs.forEach((r, i) => doc.text(r, 20, 50 + i * 10));
+
+      doc.save(`${company.replace(/\s+/g, '-')}-security-report-${new Date().toISOString().slice(0,10)}.pdf`);
+
+      if (pdfOverlay) pdfOverlay.style.display = 'none';
+      if (pdfProgressFill) pdfProgressFill.style.width = '0%';
+      if (typeof showToast === 'function') showToast('PDF report downloaded successfully! 📄');
+    });
+  }
+
+  /* ----------------------------------------------------------
+     F9. ZERO TRUST POLICY BUILDER (Drag & Drop)
+  ---------------------------------------------------------- */
+  const policyDropZone = document.getElementById('policyDropZone');
+  const dropPlaceholder = document.getElementById('dropPlaceholder');
+  const validatePolicyBtn = document.getElementById('validatePolicyBtn');
+  const exportPolicyBtn = document.getElementById('exportPolicyBtn');
+  const applyPolicyBtn = document.getElementById('applyPolicyBtn');
+  const policyValidation = document.getElementById('policyValidation');
+  let policyRules = [];
+  let policyIdCounter = 0;
+
+  // Palette drag events
+  document.querySelectorAll('.rule-palette-card').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', card.dataset.ruleType);
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+
+  // Drop zone events
+  if (policyDropZone) {
+    policyDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      policyDropZone.classList.add('drag-over');
+    });
+    policyDropZone.addEventListener('dragleave', () => policyDropZone.classList.remove('drag-over'));
+    policyDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      policyDropZone.classList.remove('drag-over');
+      const ruleType = e.dataTransfer.getData('text/plain');
+      if (ruleType) addPolicyRule(ruleType);
+    });
+  }
+
+  function getFieldsForType(type) {
+    switch(type) {
+      case 'allow': case 'deny':
+        return `<input type="text" placeholder="Source CIDR" class="rule-source"><input type="text" placeholder="Destination" class="rule-dest"><input type="text" placeholder="Port" class="rule-port"><select class="rule-protocol"><option>TCP</option><option>UDP</option><option>ICMP</option><option>Any</option></select>`;
+      case 'conditional':
+        return `<input type="text" placeholder="Source CIDR" class="rule-source"><input type="text" placeholder="Port" class="rule-port"><select class="rule-condition"><option>MFA Required</option><option>Time-Based (Business Hours)</option><option>IP Whitelist</option><option>Device Trust</option></select>`;
+      case 'ratelimit':
+        return `<input type="text" placeholder="Endpoint" class="rule-endpoint"><input type="number" placeholder="Req/min" class="rule-rate" value="100"><input type="number" placeholder="Burst" class="rule-burst" value="200">`;
+      case 'geoblock':
+        return `<select class="rule-countries" multiple size="3"><option value="KP">North Korea</option><option value="RU">Russia</option><option value="CN">China</option><option value="IR">Iran</option><option value="SY">Syria</option><option value="CU">Cuba</option></select><select class="rule-geo-action"><option>Block</option><option>Allow Only</option></select>`;
+      default: return '';
+    }
+  }
+
+  function addPolicyRule(type, prefill = {}) {
+    if (dropPlaceholder) dropPlaceholder.style.display = 'none';
+    const id = ++policyIdCounter;
+    policyRules.push({ id, type, ...prefill });
+
+    // Add arrow between rules
+    if (policyDropZone.querySelectorAll('.policy-rule').length > 0) {
+      const arrow = document.createElement('div');
+      arrow.className = 'policy-rule-arrow';
+      arrow.innerHTML = '↓';
+      policyDropZone.appendChild(arrow);
+    }
+
+    const ruleEl = document.createElement('div');
+    ruleEl.className = 'policy-rule';
+    ruleEl.dataset.ruleId = id;
+    ruleEl.innerHTML = `
+      <span class="policy-rule-type ${type}">${type === 'ratelimit' ? 'Rate Limit' : type === 'geoblock' ? 'Geo-Block' : type}</span>
+      <div class="policy-rule-fields">${getFieldsForType(type)}</div>
+      <div class="policy-rule-actions">
+        <button class="rule-delete" title="Delete">✕</button>
+        <button class="rule-move-up" title="Move up">↑</button>
+        <button class="rule-move-down" title="Move down">↓</button>
+      </div>
+    `;
+
+    // Prefill values
+    if (prefill.source) { const el = ruleEl.querySelector('.rule-source'); if (el) el.value = prefill.source; }
+    if (prefill.dest) { const el = ruleEl.querySelector('.rule-dest'); if (el) el.value = prefill.dest; }
+    if (prefill.port) { const el = ruleEl.querySelector('.rule-port'); if (el) el.value = prefill.port; }
+
+    ruleEl.querySelector('.rule-delete').addEventListener('click', () => {
+      policyRules = policyRules.filter(r => r.id !== id);
+      const prev = ruleEl.previousElementSibling;
+      if (prev && prev.classList.contains('policy-rule-arrow')) prev.remove();
+      else { const next = ruleEl.nextElementSibling; if (next && next.classList.contains('policy-rule-arrow')) next.remove(); }
+      ruleEl.remove();
+      if (policyDropZone.querySelectorAll('.policy-rule').length === 0 && dropPlaceholder) dropPlaceholder.style.display = 'flex';
+    });
+
+    policyDropZone.appendChild(ruleEl);
+  }
+
+  // Template loading
+  const templates = {
+    cis: [
+      { type: 'deny', source: '0.0.0.0/0', dest: '*', port: '22' },
+      { type: 'deny', source: '0.0.0.0/0', dest: '*', port: '3389' },
+      { type: 'conditional', source: '10.0.0.0/8', port: '443' },
+      { type: 'allow', source: '10.0.0.0/8', dest: '10.0.0.0/8', port: '*' },
+      { type: 'ratelimit' },
+      { type: 'geoblock' },
+    ],
+    soc2: [
+      { type: 'conditional', source: '*', port: '*' },
+      { type: 'deny', source: '0.0.0.0/0', dest: '*', port: '21,23,445' },
+      { type: 'allow', source: '10.0.0.0/8', dest: 'prod-vpc', port: '443' },
+      { type: 'ratelimit' },
+    ],
+    hipaa: [
+      { type: 'deny', source: '0.0.0.0/0', dest: 'phi-subnet', port: '*' },
+      { type: 'conditional', source: 'admin-vpc', port: '443' },
+      { type: 'allow', source: 'vpn-cidr', dest: 'phi-subnet', port: '443' },
+      { type: 'geoblock' },
+      { type: 'ratelimit' },
+    ],
+    pci: [
+      { type: 'deny', source: '0.0.0.0/0', dest: 'cardholder-env', port: '*' },
+      { type: 'allow', source: 'pci-vlan', dest: 'cardholder-env', port: '443' },
+      { type: 'conditional', source: '*', port: '3306' },
+      { type: 'ratelimit' },
+    ]
+  };
+
+  document.querySelectorAll('.template-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Clear existing
+      policyRules = [];
+      policyIdCounter = 0;
+      if (policyDropZone) {
+        policyDropZone.innerHTML = '';
+        if (dropPlaceholder) policyDropZone.appendChild(dropPlaceholder);
+      }
+      const tmpl = templates[btn.dataset.template];
+      if (tmpl) tmpl.forEach(r => addPolicyRule(r.type, r));
+      if (typeof showToast === 'function') showToast(`${btn.textContent.trim()} template loaded!`);
+    });
+  });
+
+  if (validatePolicyBtn) {
+    validatePolicyBtn.addEventListener('click', () => {
+      if (policyRules.length === 0) {
+        if (policyValidation) { policyValidation.style.display = 'block'; policyValidation.className = 'policy-validation error'; policyValidation.textContent = '✕ No rules defined. Add at least one rule to validate.'; }
+        return;
+      }
+      // Check if all fields have values
+      const emptyFields = policyDropZone.querySelectorAll('input:placeholder-shown');
+      if (emptyFields.length > 0) {
+        if (policyValidation) { policyValidation.style.display = 'block'; policyValidation.className = 'policy-validation error'; policyValidation.textContent = `✕ Validation failed: ${emptyFields.length} field(s) still empty.`; }
+      } else {
+        if (policyValidation) { policyValidation.style.display = 'block'; policyValidation.className = 'policy-validation success'; policyValidation.textContent = `✓ Policy validated! ${policyRules.length} rules are correctly configured.`; }
+      }
+      setTimeout(() => { if (policyValidation) policyValidation.style.display = 'none'; }, 4000);
+    });
+  }
+
+  if (exportPolicyBtn) {
+    exportPolicyBtn.addEventListener('click', () => {
+      const rules = [];
+      policyDropZone.querySelectorAll('.policy-rule').forEach(ruleEl => {
+        const type = ruleEl.querySelector('.policy-rule-type').textContent.trim().toLowerCase();
+        const rule = { type, priority: rules.length + 1 };
+        ruleEl.querySelectorAll('input, select').forEach(field => {
+          const cls = [...field.classList].find(c => c.startsWith('rule-'));
+          if (cls) rule[cls.replace('rule-', '')] = field.value;
+        });
+        rules.push(rule);
+      });
+      const blob = new Blob([JSON.stringify({ policyName: 'ShieldAI Zero Trust Policy', version: '1.0', generatedAt: new Date().toISOString(), rules }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `shieldai-policy-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      if (typeof showToast === 'function') showToast('Policy exported as JSON!');
+    });
+  }
+
+  if (applyPolicyBtn) {
+    applyPolicyBtn.addEventListener('click', () => {
+      if (policyRules.length === 0) {
+        if (typeof showToast === 'function') showToast('No rules to apply. Add rules first.');
+        return;
+      }
+      localStorage.setItem('shieldai_policies', JSON.stringify(policyRules));
+      if (typeof showToast === 'function') showToast(`✓ ${policyRules.length} policy rules applied successfully!`);
+    });
+  }
+
 }); // end DOMContentLoaded
