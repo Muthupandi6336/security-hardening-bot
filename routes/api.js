@@ -20,8 +20,17 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Middleware for Admin-only actions
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403).json({ error: 'Forbidden: Admin access required' });
+  }
+};
+
 // Example protected route to trigger a cloud scan
-router.post('/scan', authenticateToken, async (req, res) => {
+router.post('/scan', authenticateToken, isAdmin, async (req, res) => {
   const provider = req.body.provider || 'aws';
   let result;
   
@@ -60,7 +69,14 @@ router.post('/chat', (req, res) => {
   const msg = message.toLowerCase();
   let responseText = "I'm not sure about that specific issue. Can you provide more details or ask about IAM, open ports, or Zero Trust?";
 
-  if (/\b(?:ports?)\b/i.test(msg)) {
+  // Conversational Manners
+  if (/\b(?:hello|hi|hey|greetings)\b/i.test(msg)) {
+    responseText = "Hello! 👋 I am the ShieldAI automated security assistant. How can I help you harden your infrastructure today?\n\n*Try asking about IAM, Open Ports, or Compliance Reports.*";
+  } else if (/\b(?:thanks|thank you|thx)\b/i.test(msg)) {
+    responseText = "You're very welcome! Security is a team effort. Let me know if you need to run another scan or check your policies.";
+  }
+  // Security Topics
+  else if (/\b(?:ports?)\b/i.test(msg)) {
     responseText = "### How to Secure Open Ports\n1. **Identify open ports:** Run `sudo ufw status` or `netstat -tulpn`.\n2. **Close unnecessary ports:** `sudo ufw deny [port]`.\n3. **Use a VPN or Bastion Host:** Restrict access to administrative ports like 22 (SSH) or 3389 (RDP).\n\n*Would you like me to scan your external IP for open ports?*";
   } else if (/\b(?:iam|identity|access)\b/i.test(msg)) {
     responseText = "### IAM Best Practices\n- **Enforce MFA:** Require Multi-Factor Authentication for all console users.\n- **Least Privilege:** Do not attach full `AdministratorAccess` to standard users or groups.\n- **Rotate Keys:** Ensure Access Keys are rotated every 90 days.\n\nUse our **Compliance Checker** tool to scan your AWS/GCP accounts for IAM violations.";

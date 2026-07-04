@@ -20,6 +20,7 @@ const io = new Server(server, {
 });
 
 // Middleware
+app.use(helmet()); // Secure HTTP headers
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));

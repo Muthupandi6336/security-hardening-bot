@@ -13,7 +13,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
     db.run(`CREATE TABLE IF NOT EXISTS Users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
-      password TEXT
+      password TEXT,
+      role TEXT DEFAULT 'user'
     )`, (err) => {
       if (!err) {
         // Seed an admin user if it doesn't exist
@@ -21,7 +22,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
           if (!row) {
             bcrypt.hash('admin123', 10, (err, hash) => {
               if (err) return console.error(err);
-              db.run("INSERT INTO Users (username, password) VALUES (?, ?)", ["admin", hash]);
+              db.run("INSERT INTO Users (username, password, role) VALUES (?, ?, ?)", ["admin", hash, "admin"]);
               console.log('Default admin user created: admin / admin123');
             });
           }
