@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — ShieldAI</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             display: flex;
@@ -33,6 +34,7 @@
         .form-group {
             margin-bottom: 20px;
             text-align: left;
+            position: relative;
         }
         .form-group label {
             display: block;
@@ -43,6 +45,7 @@
         .form-group input {
             width: 100%;
             padding: 12px 16px;
+            padding-right: 40px; /* Space for eye icon */
             background: var(--bg-primary);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
@@ -52,6 +55,17 @@
         .form-group input:focus {
             outline: none;
             border-color: #4cc9f0;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 40px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        .toggle-password:hover {
+            color: var(--text-primary);
         }
         .login-btn {
             width: 100%;
@@ -88,6 +102,7 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" required placeholder="admin123">
+                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
             </div>
             <button type="submit" class="login-btn">Secure Login</button>
             <div id="loginError">Invalid credentials</div>
@@ -95,10 +110,23 @@
     </div>
 
     <script>
+        // Password Toggle Logic
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            // Toggle the eye / eye-slash icon
+            togglePassword.classList.toggle('fa-eye');
+            togglePassword.classList.toggle('fa-eye-slash');
+        });
+
+        // Login Logic
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const password = passwordInput.value;
             
             try {
                 const response = await fetch('/api/auth/login', {
