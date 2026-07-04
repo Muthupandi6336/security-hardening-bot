@@ -12,36 +12,47 @@ const init = (io, dbInstance) => {
   async function fetchLiveThreats() {
     try {
       const response = await axios.get('https://api.blocklist.de/getlast.php?time=5');
-      const ips = response.data.split('\n').filter(ip => ip.trim().length > 0);
+      let ips = response.data.split('\n').filter(ip => ip.trim().length > 0);
       
-      // Pick 10 random IPs to queue up
-      for(let i = 0; i < 10; i++) {
-        const ip = ips[Math.floor(Math.random() * ips.length)];
-        if(!ip) continue;
-        
-        let geo = geoCache[ip];
-        if(!geo) {
-          try {
-            const geoRes = await axios.get(`http://ip-api.com/json/${ip}`);
-            if(geoRes.data && geoRes.data.status === 'success') {
-              geo = { lat: geoRes.data.lat, lon: geoRes.data.lon, city: geoRes.data.city || geoRes.data.country };
-              geoCache[ip] = geo;
+      // Shuffle and pick 10 random IPs
+      ips = ips.sort(() => 0.5 - Math.random()).slice(0, 10);
+      if(ips.length === 0) return;
+
+      const ipsToFetch = ips.filter(ip => !geoCache[ip]);
+      
+      if (ipsToFetch.length > 0) {
+        try {
+          const geoRes = await axios.post('http://ip-api.com/batch', ipsToFetch);
+          geoRes.data.forEach(geoInfo => {
+            if (geoInfo && geoInfo.status === 'success') {
+              geoCache[geoInfo.query] = { 
+                lat: geoInfo.lat, 
+                lon: geoInfo.lon, 
+                city: geoInfo.city || geoInfo.country 
+              };
             }
-          } catch(e) { continue; }
+          });
+        } catch(e) {
+          console.error('IP-API Batch Error:', e.message);
         }
-        
-        if(geo) {
+      }
+
+      // Add to queue and broadcast logs
+      ips.forEach(ip => {
+        const geo = geoCache[ip];
+        if (geo) {
           threatQueue.push(geo);
           io.emit('raw-log', `[LIVE INTEL] Malicious IP ${ip} detected targeting global infrastructure from ${geo.city} [LAT:${geo.lat}, LON:${geo.lon}]`);
         }
-      }
+      });
+
     } catch(e) {
       console.error('Error fetching threats:', e.message);
     }
   }
 
-  // Fetch new threats every 30 seconds
-  setInterval(fetchLiveThreats, 30000);
+  // Fetch new threats every 15 seconds to keep map active
+  setInterval(fetchLiveThreats, 15000);
   fetchLiveThreats();
 
   // Drip feed threats from the queue to the frontend every 2-4 seconds
