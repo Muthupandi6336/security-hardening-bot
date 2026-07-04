@@ -1457,30 +1457,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatSendBtn = document.getElementById('chatSendBtn');
   const chatMessages = document.getElementById('chatMessages');
 
-  const chatResponses = {
-    'open ports': '🔒 **Securing Open Ports:**\n\n1. **Audit**: Run `nmap -sV target_ip` to identify open ports and services\n2. **Close unnecessary ports** via security groups / firewall rules\n3. **Restrict access**: Limit source IPs to known CIDR ranges (e.g., your VPC CIDR)\n4. **Use bastion hosts** for SSH (port 22) instead of direct access\n5. **Enable port knocking** or VPN for sensitive services\n6. **Monitor**: Set up alerts for new port openings\n\n⚡ ShieldAI can auto-close commonly exploited ports like 23 (Telnet), 445 (SMB), and 3389 (RDP).',
-    'iam': '🔑 **IAM Best Practices:**\n\n1. **Least Privilege**: Grant only the minimum permissions needed\n2. **Enable MFA** on all accounts, especially root/admin\n3. **Rotate credentials** every 90 days (ShieldAI monitors this)\n4. **Use IAM Roles** instead of long-term access keys\n5. **Implement SCPs** (Service Control Policies) for organization-wide guardrails\n6. **Audit regularly**: Use IAM Access Analyzer\n7. **Never use root account** for daily operations\n\n🛡️ ShieldAI automatically flags IAM violations and suggests scoped policies.',
-    'zero trust': '🛡️ **Zero Trust Architecture:**\n\nZero Trust operates on "never trust, always verify":\n\n1. **Verify every request** — authenticate & authorize all users, devices, and workloads\n2. **Microsegmentation** — isolate workloads and limit lateral movement\n3. **Least privilege access** — just-in-time, just-enough access\n4. **Continuous monitoring** — real-time threat detection & response\n5. **Assume breach** — design systems expecting attackers are already inside\n\n🏗️ Use ShieldAI\'s Policy Builder to create Zero Trust rules with drag-and-drop!',
-    'report': '📊 **Generating Reports:**\n\n1. Go to the **Compliance Report** section\n2. Click **"Download Full Report (PDF)"**\n3. ShieldAI generates a multi-page PDF with:\n   - Executive Summary\n   - Compliance scores (before/after)\n   - Top findings by severity\n   - Remediation recommendations\n4. **Schedule Weekly Reports** for automated delivery\n\n📅 Reports include CIS Benchmark, SOC 2, HIPAA, and PCI-DSS frameworks.',
-    's3': '🪣 **S3 Security Hardening:**\n\n1. **Block Public Access** — enable S3 Block Public Access at the account level\n2. **Enable Encryption** — use SSE-S3 or SSE-KMS for at-rest encryption\n3. **Enable Versioning** — protect against accidental deletion\n4. **Enable Access Logging** — track all requests to your buckets\n5. **Use Bucket Policies** — restrict access to specific VPC endpoints\n6. **Enable MFA Delete** — require MFA to delete objects\n\n⚡ ShieldAI auto-remediates public bucket access and missing encryption.',
-    'encryption': '🔐 **Encryption Best Practices:**\n\n1. **At Rest**: Enable encryption for all storage (S3, RDS, EBS, GCS)\n2. **In Transit**: Enforce TLS 1.2+ on all connections\n3. **Key Management**: Use managed KMS (AWS KMS, Azure Key Vault, GCP KMS)\n4. **Key Rotation**: Enable automatic annual rotation\n5. **Certificate Management**: Auto-renew SSL/TLS certificates\n\n🛡️ ShieldAI monitors encryption status across all resources.',
-    'firewall': '🧱 **Firewall Best Practices:**\n\n1. **Default Deny** — block all traffic by default\n2. **Whitelist approach** — only allow known good traffic\n3. **Segment networks** — separate prod/staging/dev environments\n4. **Use WAF** — protect web apps from OWASP Top 10\n5. **Log everything** — enable flow logs for all VPCs\n6. **Regular audits** — review rules quarterly\n\n🔥 ShieldAI detects overly permissive security group rules automatically.',
-    'compliance': '📋 **Compliance Frameworks:**\n\n• **CIS Benchmarks** — Configuration hardening guidelines\n• **SOC 2** — Security, availability, processing integrity\n• **HIPAA** — Healthcare data protection requirements\n• **PCI-DSS** — Payment card industry standards\n• **NIST 800-53** — Federal security controls\n\n📊 ShieldAI maps your security posture to all major frameworks and generates gap analysis reports.'
-  };
-
-  const defaultResponse = "🤔 That's a great question! While I don't have a specific answer for that, I can help you with:\n\n• **Open ports** security\n• **IAM** best practices\n• **Zero Trust** architecture\n• **S3/Storage** hardening\n• **Encryption** standards\n• **Firewall** rules\n• **Compliance** frameworks\n• **Report** generation\n\nTry asking about any of these topics!";
-
   function addChatMessage(content, isUser = false) {
     if (!chatMessages) return;
     const div = document.createElement('div');
     div.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+    
+    // Parse markdown if it's from the bot
+    const formattedContent = isUser ? content : (typeof marked !== 'undefined' ? marked.parse(content) : content.replace(/\n/g, '<br>'));
+    
     div.innerHTML = `
       <div class="chat-avatar">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           ${isUser ? '<circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>' : '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'}
         </svg>
       </div>
-      <div class="chat-bubble">${content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>
+      <div class="chat-bubble">${formattedContent}</div>
     `;
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1491,39 +1482,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const div = document.createElement('div');
     div.className = 'chat-message bot';
     div.id = 'typingMsg';
-    div.innerHTML = `<div class="chat-avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="chat-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+    div.innerHTML = `
+      <div class="chat-avatar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="chat-bubble"><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+    `;
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function getBotResponse(query) {
-    const q = query.toLowerCase();
-    for (const [key, response] of Object.entries(chatResponses)) {
-      if (q.includes(key) || key.split(' ').some(w => q.includes(w))) return response;
-    }
-    if (q.includes('access') || q.includes('permission')) return chatResponses['iam'];
-    if (q.includes('bucket')) return chatResponses['s3'];
-    return defaultResponse;
-  }
-
-  function sendChatMessage() {
+  async function sendChatMessage() {
     if (!chatInput) return;
     const text = chatInput.value.trim();
     if (!text) return;
+    
     addChatMessage(text, true);
     chatInput.value = '';
     showTyping();
-    setTimeout(() => {
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+      });
+      
+      const data = await response.json();
       const typing = document.getElementById('typingMsg');
       if (typing) typing.remove();
-      addChatMessage(getBotResponse(text));
-    }, 800 + Math.random() * 800);
+      
+      if (data.reply) {
+        addChatMessage(data.reply);
+      } else {
+        addChatMessage("Sorry, I encountered an error. Please try again.");
+      }
+    } catch (err) {
+      const typing = document.getElementById('typingMsg');
+      if (typing) typing.remove();
+      addChatMessage("Connection error. Could not reach ShieldAI API.");
+    }
   }
 
   if (chatFab) chatFab.addEventListener('click', () => chatPanel && chatPanel.classList.toggle('active'));
   if (chatMinimize) chatMinimize.addEventListener('click', () => chatPanel && chatPanel.classList.remove('active'));
   if (chatSendBtn) chatSendBtn.addEventListener('click', sendChatMessage);
   if (chatInput) chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+  
+  const chatClearBtn = document.getElementById('chatClear');
+  if (chatClearBtn) {
+    chatClearBtn.addEventListener('click', () => {
+      if (!chatMessages) return;
+      chatMessages.innerHTML = `
+        <div class="chat-message bot">
+            <div class="chat-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="chat-bubble">Conversation cleared. How can I assist you today?</div>
+        </div>
+      `;
+    });
+  }
 
   document.querySelectorAll('.chat-chip').forEach(chip => {
     chip.addEventListener('click', () => {
