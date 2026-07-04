@@ -1740,6 +1740,9 @@ code {
   fill: none;
   stroke-width: 12;
   stroke-linecap: round;
+  /* Circumference = 2 * PI * 85 = 534.07 */
+  stroke-dasharray: 534.07;
+  stroke-dashoffset: 534.07;
   transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

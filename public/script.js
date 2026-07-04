@@ -364,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Animate corresponding donut value counter
-    const container = circle.closest('.donut-chart') || circle.closest('.donut-container') || circle.parentElement.parentElement;
+    const container = circle.closest('.donut-container') || circle.parentElement.parentElement;
     if (container) {
       const valueEl = container.querySelector('.donut-value');
       if (valueEl && valueEl.dataset.animated !== 'true') {
