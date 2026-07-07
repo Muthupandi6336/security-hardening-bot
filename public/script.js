@@ -797,9 +797,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Save config to localStorage
+  // Save config to localStorage and backend
   function saveConfig(config) {
     localStorage.setItem('shieldai_config', JSON.stringify(config));
+    if (typeof socket !== 'undefined' && socket) {
+      socket.emit('update-config', config);
+    }
   }
 
   // Load config from localStorage
@@ -912,7 +915,9 @@ document.addEventListener('DOMContentLoaded', () => {
         autoFix: document.getElementById('autoFix').value,
         aws: {},
         azure: {},
-        gcp: {}
+        gcp: {},
+        discordWebhook: document.getElementById('discordWebhook') ? document.getElementById('discordWebhook').value.trim() : '',
+        slackWebhook: document.getElementById('slackWebhook') ? document.getElementById('slackWebhook').value.trim() : ''
       };
 
       // Collect selected providers and their config
@@ -957,6 +962,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedConfig = loadConfig();
   if (savedConfig) {
     applyConfig(savedConfig);
+    if (typeof socket !== 'undefined' && socket) {
+      socket.emit('update-config', savedConfig);
+    }
 
     // Pre-fill form fields from saved config
     const companyNameInput = document.getElementById('companyName');
@@ -1003,11 +1011,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const el = document.getElementById('gcpServiceAccount');
       if (el) el.value = savedConfig.gcp.serviceAccount;
     }
-    // Restore scan settings
     const sf = document.getElementById('scanFrequency');
     if (sf && savedConfig.scanFrequency) sf.value = savedConfig.scanFrequency;
     const af = document.getElementById('autoFix');
     if (af && savedConfig.autoFix) af.value = savedConfig.autoFix;
+    
+    // Restore webhooks
+    const discordWh = document.getElementById('discordWebhook');
+    if (discordWh && savedConfig.discordWebhook) discordWh.value = savedConfig.discordWebhook;
+    const slackWh = document.getElementById('slackWebhook');
+    if (slackWh && savedConfig.slackWebhook) slackWh.value = savedConfig.slackWebhook;
   } else {
     // No config — first visit, show setup prompt after 2 seconds
     setTimeout(() => {
@@ -1755,7 +1768,6 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ----------------------------------------------------------
      F8. PDF REPORT GENERATOR (jsPDF)
   ---------------------------------------------------------- */
-  // downloadReportBtn is already declared above
   const pdfOverlay = document.getElementById('pdfOverlay');
   const pdfProgressFill = document.getElementById('pdfProgressFill');
   const pdfProgressTextEl = document.getElementById('pdfProgressText');
@@ -1764,7 +1776,7 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadReportBtn.addEventListener('click', async (e) => {
       e.preventDefault();
 
-      if (typeof window.jspdf === 'undefined' && typeof jspdf === 'undefined') {
+      if (typeof window.jspdf === 'undefined' || typeof html2canvas === 'undefined') {
         if (typeof showToast === 'function') showToast('PDF library loading... Please try again in a moment.');
         return;
       }
@@ -1774,28 +1786,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF('p', 'mm', 'a4');
       const w = doc.internal.pageSize.getWidth();
+      const h = doc.internal.pageSize.getHeight();
+      
       const savedConfig = JSON.parse(localStorage.getItem('shieldai_config') || '{}');
       const company = savedConfig.companyName || 'Your Organization';
       const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      const steps = [
-        { text: 'Creating cover page...', pct: 15 },
-        { text: 'Adding executive summary...', pct: 35 },
-        { text: 'Generating compliance data...', pct: 55 },
-        { text: 'Building findings table...', pct: 75 },
-        { text: 'Adding recommendations...', pct: 90 },
-        { text: 'Finalizing report...', pct: 100 },
-      ];
-
-      for (const step of steps) {
-        if (pdfProgressFill) pdfProgressFill.style.width = step.pct + '%';
-        if (pdfProgressTextEl) pdfProgressTextEl.textContent = step.text;
-        await new Promise(r => setTimeout(r, 400));
-      }
-
       // Page 1 — Cover
+      if (pdfProgressTextEl) pdfProgressTextEl.textContent = 'Creating cover page...';
+      if (pdfProgressFill) pdfProgressFill.style.width = '10%';
+      await new Promise(r => setTimeout(r, 200));
+
       doc.setFillColor(10, 14, 23);
-      doc.rect(0, 0, w, 297, 'F');
+      doc.rect(0, 0, w, h, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(28);
       doc.text('Security Compliance', w/2, 100, { align: 'center' });
@@ -1808,100 +1811,48 @@ document.addEventListener('DOMContentLoaded', () => {
       doc.text(today, w/2, 155, { align: 'center' });
       doc.text('Generated by ShieldAI Security Bot', w/2, 170, { align: 'center' });
 
-      // Page 2 — Executive Summary
-      doc.addPage();
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, w, 297, 'F');
-      doc.setTextColor(15, 23, 42);
-      doc.setFontSize(20);
-      doc.text('Executive Summary', 20, 30);
-      doc.setFontSize(11);
-      doc.setTextColor(71, 85, 105);
-      doc.text(`Overall Security Score: 94.2%`, 20, 50);
-      doc.text(`Resources Scanned: 2,847`, 20, 60);
-      doc.text(`Issues Found: 24 (3 Critical, 6 High, 8 Medium, 7 Low)`, 20, 70);
-      doc.text(`Issues Auto-Remediated: 7`, 20, 80);
-      doc.text(`Scan Coverage: 100%`, 20, 90);
-      doc.text(`Report Period: Last 30 Days`, 20, 100);
+      // Helper function to capture and add section to PDF
+      const addSectionToPdf = async (sectionId, progressText, progressPct) => {
+        if (pdfProgressTextEl) pdfProgressTextEl.textContent = progressText;
+        if (pdfProgressFill) pdfProgressFill.style.width = progressPct + '%';
+        
+        const section = document.getElementById(sectionId);
+        if (section) {
+          try {
+            const canvas = await html2canvas(section, {
+              scale: 2,
+              backgroundColor: '#0a0e17',
+              logging: false,
+              useCORS: true
+            });
+            const imgData = canvas.toDataURL('image/jpeg', 0.8);
+            const imgProps = doc.getImageProperties(imgData);
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            doc.addPage();
+            doc.setFillColor(10, 14, 23);
+            doc.rect(0, 0, w, h, 'F');
+            doc.addImage(imgData, 'JPEG', 0, 10, pdfWidth, pdfHeight);
+          } catch(e) {
+            console.error('Error capturing section', sectionId, e);
+          }
+        }
+      };
 
-      // Page 3 — Compliance
-      doc.addPage();
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, w, 297, 'F');
-      doc.setTextColor(15, 23, 42);
-      doc.setFontSize(20);
-      doc.text('Compliance Breakdown', 20, 30);
-      doc.setFontSize(11);
-      const categories = [
-        ['IAM & Access Control', '45%', '96%'],
-        ['Network Security', '58%', '98%'],
-        ['Data Storage', '71%', '99%'],
-        ['Encryption', '64%', '97%'],
-        ['Logging & Monitoring', '52%', '95%'],
-      ];
-      doc.setTextColor(71, 85, 105);
-      doc.text('Category', 20, 50);
-      doc.text('Before', 110, 50);
-      doc.text('After', 150, 50);
-      categories.forEach((c, i) => {
-        const y = 62 + i * 12;
-        doc.text(c[0], 20, y);
-        doc.setTextColor(255, 23, 68); doc.text(c[1], 110, y);
-        doc.setTextColor(0, 230, 118); doc.text(c[2], 150, y);
-        doc.setTextColor(71, 85, 105);
-      });
+      await addSectionToPdf('dashboard', 'Capturing Live Dashboard...', 30);
+      await addSectionToPdf('scoretimeline', 'Capturing Score Analytics...', 60);
+      await addSectionToPdf('compliance', 'Capturing Compliance Metrics...', 90);
 
-      // Page 4 — Top Findings
-      doc.addPage();
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, w, 297, 'F');
-      doc.setTextColor(15, 23, 42);
-      doc.setFontSize(20);
-      doc.text('Top Security Findings', 20, 30);
-      doc.setFontSize(9);
-      doc.setTextColor(71, 85, 105);
-      const findings = [
-        ['CRITICAL', 'prod-db-sg', 'Unrestricted DB access (0.0.0.0/0:3306)', 'Open'],
-        ['CRITICAL', 'admin-role', 'IAM full admin without MFA', 'Open'],
-        ['CRITICAL', 'gcs-backup-prod', 'Public GCS bucket', 'Open'],
-        ['HIGH', 's3://client-data', 'Versioning disabled', 'Open'],
-        ['HIGH', 'webapp-nsg', 'SSH open to any source', 'Open'],
-        ['HIGH', 'prod-rds-01', 'Encryption at rest disabled', 'Open'],
-      ];
-      let fy = 45;
-      findings.forEach(f => {
-        doc.text(`[${f[0]}] ${f[1]} — ${f[2]} (${f[3]})`, 20, fy);
-        fy += 10;
-      });
-
-      // Page 5 — Recommendations
-      doc.addPage();
-      doc.setFillColor(255, 255, 255);
-      doc.rect(0, 0, w, 297, 'F');
-      doc.setTextColor(15, 23, 42);
-      doc.setFontSize(20);
-      doc.text('Recommendations', 20, 30);
-      doc.setFontSize(10);
-      doc.setTextColor(71, 85, 105);
-      const recs = [
-        '1. Immediately restrict security group prod-db-sg to VPC CIDR only',
-        '2. Add MFA requirement to admin-role IAM policy',
-        '3. Remove allUsers binding from gcs-backup-prod bucket',
-        '4. Enable S3 versioning on all production data buckets',
-        '5. Restrict SSH access to bastion host IP ranges only',
-        '6. Enable RDS encryption using AWS KMS',
-        '7. Enable CloudTrail log file validation',
-        '8. Enable VPC Flow Logs for all production VPCs',
-        '9. Implement network policy enforcement on GKE clusters',
-        '10. Schedule weekly automated compliance reports',
-      ];
-      recs.forEach((r, i) => doc.text(r, 20, 50 + i * 10));
+      if (pdfProgressTextEl) pdfProgressTextEl.textContent = 'Finalizing PDF...';
+      if (pdfProgressFill) pdfProgressFill.style.width = '100%';
+      await new Promise(r => setTimeout(r, 400));
 
       doc.save(`${company.replace(/\s+/g, '-')}-security-report-${new Date().toISOString().slice(0,10)}.pdf`);
-
+      
       if (pdfOverlay) pdfOverlay.style.display = 'none';
       if (pdfProgressFill) pdfProgressFill.style.width = '0%';
-      if (typeof showToast === 'function') showToast('PDF report downloaded successfully! 📄');
+      if (typeof showToast === 'function') showToast('PDF Report downloaded successfully! 📄');
     });
   }
 
@@ -2091,6 +2042,173 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('shieldai_policies', JSON.stringify(policyRules));
       if (typeof showToast === 'function') showToast(`✓ ${policyRules.length} policy rules applied successfully!`);
     });
+  }
+
+  /* ----------------------------------------------------------
+     F10. INTERACTIVE CLOUD TOPOLOGY MAP
+  ---------------------------------------------------------- */
+  const canvas = document.getElementById('topologyCanvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('topologyTooltip');
+    const container = document.getElementById('topologyContainer');
+    let width, height;
+
+    function resize() {
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const nodes = [
+      { id: 'lb', label: 'Load Balancer', type: 'aws', x: width/2, y: 100, radius: 25, vulnerable: false },
+      { id: 'web1', label: 'Web Server 1', type: 'aws', x: width/2 - 100, y: 200, radius: 20, vulnerable: false },
+      { id: 'web2', label: 'Web Server 2', type: 'aws', x: width/2 + 100, y: 200, radius: 20, vulnerable: false },
+      { id: 'db1', label: 'Primary DB', type: 'azure', x: width/2 - 150, y: 350, radius: 25, vulnerable: true }, // Vulnerable
+      { id: 'db2', label: 'Replica DB', type: 'azure', x: width/2 + 150, y: 350, radius: 25, vulnerable: false },
+      { id: 's3', label: 'Static Assets', type: 'aws', x: width/2 + 250, y: 150, radius: 30, vulnerable: true }, // Vulnerable
+      { id: 'gke', label: 'GKE Cluster', type: 'gcp', x: width/2 - 250, y: 150, radius: 30, vulnerable: false }
+    ];
+
+    const links = [
+      { source: 'lb', target: 'web1' },
+      { source: 'lb', target: 'web2' },
+      { source: 'web1', target: 'db1' },
+      { source: 'web2', target: 'db1' },
+      { source: 'db1', target: 'db2' },
+      { source: 'lb', target: 's3' },
+      { source: 'lb', target: 'gke' }
+    ];
+
+    const colors = {
+      'aws': '#ff9900',
+      'azure': '#0089d6',
+      'gcp': '#ea4335'
+    };
+
+    let draggedNode = null;
+    let hoveredNode = null;
+    let pulseAngle = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      pulseAngle += 0.05;
+
+      // Draw Links
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      links.forEach(link => {
+        const source = nodes.find(n => n.id === link.source);
+        const target = nodes.find(n => n.id === link.target);
+        if (source && target) {
+          ctx.beginPath();
+          ctx.moveTo(source.x, source.y);
+          ctx.lineTo(target.x, target.y);
+          ctx.stroke();
+          
+          // Draw moving particle on link
+          const dx = target.x - source.x;
+          const dy = target.y - source.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          const pOffset = (performance.now() / 20 % dist) / dist;
+          ctx.beginPath();
+          ctx.arc(source.x + dx * pOffset, source.y + dy * pOffset, 3, 0, Math.PI*2);
+          ctx.fillStyle = source.vulnerable || target.vulnerable ? '#ff1744' : '#4cc9f0';
+          ctx.fill();
+        }
+      });
+
+      // Draw Nodes
+      nodes.forEach(node => {
+        if (node.vulnerable) {
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, node.radius + 10 + Math.sin(pulseAngle) * 5, 0, Math.PI*2);
+          ctx.fillStyle = 'rgba(255, 23, 68, 0.2)';
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius, 0, Math.PI*2);
+        ctx.fillStyle = node === hoveredNode ? '#ffffff' : colors[node.type];
+        ctx.fill();
+        
+        if (node.vulnerable) {
+          ctx.strokeStyle = '#ff1744';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(node.label, node.x, node.y + node.radius + 20);
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    // Mouse interaction
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (draggedNode) {
+        draggedNode.x = x;
+        draggedNode.y = y;
+        return;
+      }
+
+      hoveredNode = nodes.find(n => {
+        const dx = n.x - x;
+        const dy = n.y - y;
+        return Math.sqrt(dx*dx + dy*dy) < n.radius;
+      });
+
+      if (hoveredNode) {
+        canvas.style.cursor = 'pointer';
+        tooltip.style.display = 'block';
+        tooltip.style.left = e.clientX + 15 + 'px';
+        tooltip.style.top = e.clientY + 15 + 'px';
+        tooltip.innerHTML = `<span class="t-title">${hoveredNode.label}</span>
+                             <span class="t-type">Provider: ${hoveredNode.type.toUpperCase()}</span>
+                             <div style="color: ${hoveredNode.vulnerable ? '#ff1744' : '#00e676'}; margin-top: 5px; font-size: 0.8rem;">
+                               Status: ${hoveredNode.vulnerable ? 'CRITICAL RISK' : 'SECURE'}
+                             </div>`;
+      } else {
+        canvas.style.cursor = 'grab';
+        tooltip.style.display = 'none';
+      }
+    });
+
+    canvas.addEventListener('mousedown', () => {
+      if (hoveredNode) draggedNode = hoveredNode;
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      draggedNode = null;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      draggedNode = null;
+      tooltip.style.display = 'none';
+    });
+    
+    document.getElementById('topologyResetBtn')?.addEventListener('click', () => {
+      // Reset positions to original
+      nodes[0].x = width/2; nodes[0].y = 100;
+      nodes[1].x = width/2 - 100; nodes[1].y = 200;
+      nodes[2].x = width/2 + 100; nodes[2].y = 200;
+      nodes[3].x = width/2 - 150; nodes[3].y = 350;
+      nodes[4].x = width/2 + 150; nodes[4].y = 350;
+      nodes[5].x = width/2 + 250; nodes[5].y = 150;
+      nodes[6].x = width/2 - 250; nodes[6].y = 150;
+    });
+
+    draw();
   }
 
 }); // end DOMContentLoaded

@@ -300,6 +300,37 @@
         </div>
     </section>
 
+    <!-- ===== CLOUD TOPOLOGY MAP ===== -->
+    <section class="section section-topology" id="topology">
+        <div class="container">
+            <div class="section-header anim-fade-up">
+                <span class="section-tag">Architecture</span>
+                <h2 class="section-title">Interactive Cloud <span class="gradient-text">Topology</span></h2>
+                <p class="section-desc">Visualize your cloud infrastructure and active security risks.</p>
+            </div>
+            <div class="topology-card dash-card anim-fade-up">
+                <div class="card-header">
+                    <h3>Infrastructure Graph</h3>
+                    <div class="topology-controls">
+                        <button class="btn-icon" id="topologyResetBtn" aria-label="Reset view">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="topology-canvas-container" id="topologyContainer">
+                    <canvas id="topologyCanvas"></canvas>
+                    <div class="topology-tooltip" id="topologyTooltip" style="display:none;"></div>
+                </div>
+                <div class="topology-legend">
+                    <div class="legend-item"><span class="legend-dot aws"></span> AWS</div>
+                    <div class="legend-item"><span class="legend-dot azure"></span> Azure</div>
+                    <div class="legend-item"><span class="legend-dot gcp"></span> GCP</div>
+                    <div class="legend-item"><span class="legend-dot vulnerable" style="animation: pulse-red 2s infinite"></span> Vulnerable</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- ===== SECURITY SCORE TIMELINE ===== -->
     <section class="section section-scoretimeline" id="scoretimeline">
         <div class="container">
@@ -1032,6 +1063,17 @@
                         <div class="setup-field"><label for="autoFix">Auto-Fix Low Risk</label><select id="autoFix"><option value="yes">Enabled</option><option value="no">Disabled (Manual Only)</option></select></div>
                     </div>
                 </div>
+                <div class="setup-section">
+                    <h3 class="setup-section-title">Integrations (Webhooks)</h3>
+                    <div class="setup-field">
+                        <label for="discordWebhook">Discord Webhook URL <span class="field-hint">(For critical alerts)</span></label>
+                        <input type="text" id="discordWebhook" placeholder="https://discord.com/api/webhooks/...">
+                    </div>
+                    <div class="setup-field">
+                        <label for="slackWebhook">Slack Webhook URL <span class="field-hint">(For critical alerts)</span></label>
+                        <input type="text" id="slackWebhook" placeholder="https://hooks.slack.com/services/...">
+                    </div>
+                </div>
                 <div class="setup-actions">
                     <button type="button" class="btn btn-ghost" id="setupCancelBtn">Cancel</button>
                     <button type="submit" class="btn btn-primary">
@@ -1099,6 +1141,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="script.js"></script>

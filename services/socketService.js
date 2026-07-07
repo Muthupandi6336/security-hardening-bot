@@ -2,7 +2,7 @@ const db = require('../db/database');
 
 const axios = require('axios');
 
-// Simple cache to avoid geolocating the same IP twice
+let currentConfig = {};
 const geoCache = {};
 let threatQueue = [];
 
@@ -70,11 +70,25 @@ const init = (io, dbInstance) => {
       ];
       const target = infraTargets[Math.floor(Math.random() * infraTargets.length)];
       
+      const severity = severities[Math.floor(Math.random() * severities.length)];
+      
       io.emit('threat-alert', {
         origin: { name: geo.city, lat: geo.lat, lon: geo.lon },
         target: target,
-        severity: severities[Math.floor(Math.random() * severities.length)]
+        severity: severity
       });
+
+      // Push webhook if critical
+      if (severity === 'critical') {
+        const msg = `🚨 **CRITICAL THREAT DETECTED**\nOrigin: ${geo.city} (${geo.lat}, ${geo.lon})\nTarget: ${target.name} Region\nAction: Auto-Blocked by ShieldAI`;
+        
+        if (currentConfig.discordWebhook) {
+          axios.post(currentConfig.discordWebhook, { content: msg }).catch(e => console.error('Discord webhook failed:', e.message));
+        }
+        if (currentConfig.slackWebhook) {
+          axios.post(currentConfig.slackWebhook, { text: msg }).catch(e => console.error('Slack webhook failed:', e.message));
+        }
+      }
     }
   }, 2500);
 
@@ -90,6 +104,11 @@ const init = (io, dbInstance) => {
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
     }, 30000);
+
+    socket.on('update-config', (cfg) => {
+      currentConfig = cfg || {};
+      console.log('Backend config updated via WebSocket');
+    });
 
     socket.on('disconnect', () => {
       console.log('Client disconnected:', socket.id);

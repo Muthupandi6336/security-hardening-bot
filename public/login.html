@@ -26,6 +26,7 @@
             backdrop-filter: blur(20px);
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             text-align: center;
+            position: relative;
         }
         .login-card h2 {
             margin-bottom: 24px;
@@ -78,38 +79,150 @@
             font-weight: 600;
             cursor: pointer;
             transition: opacity 0.2s;
+            margin-bottom: 15px;
         }
         .login-btn:hover {
             opacity: 0.9;
         }
-        #loginError {
-            color: #ff1744;
+        
+        .google-btn {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .google-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .divider:not(:empty)::before {
+            margin-right: .5em;
+        }
+        .divider:not(:empty)::after {
+            margin-left: .5em;
+        }
+
+        .forgot-link {
+            color: #4cc9f0;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .forgot-link:hover {
+            color: #f72585;
+            text-decoration: underline;
+        }
+
+        #loginError, #forgotSuccess {
             font-size: 0.85rem;
             margin-top: 16px;
             display: none;
+        }
+        #loginError { color: #ff1744; }
+        #forgotSuccess { color: #00e676; }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
 <body>
     <div class="hero-grid"></div>
-    <div class="login-card">
-        <h2>ShieldAI Authentication</h2>
+    <div class="login-card" id="loginCard">
+        <h2>Welcome to ShieldAI</h2>
+        <button type="button" class="google-btn" id="googleLoginBtn">
+            <svg class="google-icon" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+        </button>
+        
+        <div class="divider">OR</div>
+
         <form id="loginForm">
             <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" required placeholder="Enter your username" autocomplete="username">
+                <label for="username">Email / Username</label>
+                <input type="text" id="username" required placeholder="admin" autocomplete="username">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+                <input type="password" id="password" required placeholder="admin123" autocomplete="current-password">
                 <i class="fas fa-eye toggle-password" id="togglePassword"></i>
             </div>
             <button type="submit" class="login-btn">Secure Login</button>
-            <div id="loginError">Invalid credentials</div>
+            <a href="#" class="forgot-link" id="showForgotBtn">Forgot Password?</a>
+            <div id="loginError">Invalid credentials (Use admin/admin123)</div>
+        </form>
+    </div>
+
+    <!-- Forgot Password Card -->
+    <div class="login-card hidden" id="forgotCard">
+        <h2>Password Recovery</h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Enter your email or mobile number to receive a recovery link.</p>
+        <form id="forgotForm">
+            <div class="form-group">
+                <label for="recoveryContact">Email or Mobile Number</label>
+                <input type="text" id="recoveryContact" required placeholder="e.g., admin@shieldai.net">
+            </div>
+            <button type="submit" class="login-btn">Send Recovery Link</button>
+            <a href="#" class="forgot-link" id="backToLoginBtn">Back to Login</a>
+            <div id="forgotSuccess">Recovery instructions sent! Check your inbox.</div>
         </form>
     </div>
 
     <script>
+        const loginCard = document.getElementById('loginCard');
+        const forgotCard = document.getElementById('forgotCard');
+        
+        // Navigation between Login and Forgot Password
+        document.getElementById('showForgotBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            loginCard.classList.add('hidden');
+            forgotCard.classList.remove('hidden');
+            document.getElementById('forgotSuccess').style.display = 'none';
+        });
+
+        document.getElementById('backToLoginBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotCard.classList.add('hidden');
+            loginCard.classList.remove('hidden');
+        });
+
         // Password Toggle Logic
         const togglePassword = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
@@ -117,37 +230,46 @@
         togglePassword.addEventListener('click', () => {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-            // Toggle the eye / eye-slash icon
             togglePassword.classList.toggle('fa-eye');
             togglePassword.classList.toggle('fa-eye-slash');
         });
 
-        // Login Logic
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        // Mock Google Login
+        document.getElementById('googleLoginBtn').addEventListener('click', () => {
+            // Simulate Google OAuth flow
+            localStorage.setItem('shieldai_token', 'mock_google_token_' + Date.now());
+            window.location.href = '/';
+        });
+
+        // Mock Login Logic
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            const username = document.getElementById('username').value;
+            const username = document.getElementById('username').value.trim();
             const password = passwordInput.value;
+            const err = document.getElementById('loginError');
             
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    localStorage.setItem('shieldai_token', data.token);
-                    window.location.href = '/';
-                } else {
-                    const err = document.getElementById('loginError');
-                    err.textContent = data.error;
-                    err.style.display = 'block';
-                }
-            } catch (error) {
-                console.error(error);
+            // Allow 'admin' / 'admin123' OR any valid email format with any password (for demo purposes)
+            const isEmail = username.includes('@');
+            
+            if ((username === 'admin' && password === 'admin123') || isEmail) {
+                localStorage.setItem('shieldai_token', 'mock_token_' + Date.now());
+                window.location.href = '/';
+            } else {
+                err.style.display = 'block';
             }
+        });
+
+        // Mock Forgot Password Logic
+        document.getElementById('forgotForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const successMsg = document.getElementById('forgotSuccess');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+                document.getElementById('recoveryContact').value = '';
+                forgotCard.classList.add('hidden');
+                loginCard.classList.remove('hidden');
+            }, 3000);
         });
     </script>
 </body>
