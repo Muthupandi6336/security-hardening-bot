@@ -4074,7 +4074,7 @@ body.theme-transitioning * {
 .attack-line.medium { stroke: var(--severity-medium); }
 
 @keyframes attackFlow {
-  from { stroke-dashoffset: 600; }
+  from { stroke-dashoffset: 800; }
   to { stroke-dashoffset: 0; }
 }
 

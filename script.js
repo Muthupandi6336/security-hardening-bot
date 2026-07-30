@@ -1373,42 +1373,55 @@ document.addEventListener('DOMContentLoaded', () => {
     const midX = (origin.x + target.x) / 2;
     const midY = Math.min(origin.y, target.y) - 40 - Math.random() * 60;
 
-    // 1. Draw the attack line
+    const color = severity === 'critical' ? '#ff1744' : severity === 'high' ? '#ff9100' : '#ffea00';
+    const pathD = `M${origin.x},${origin.y} Q${midX},${midY} ${target.x},${target.y}`;
+
+    // 1. Draw the attack trajectory line
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', `M${origin.x},${origin.y} Q${midX},${midY} ${target.x},${target.y}`);
-    path.setAttribute('class', `attack-line ${severity}`);
-    path.setAttribute('stroke-dasharray', '600');
-    path.setAttribute('stroke-dashoffset', '600');
-    path.style.animation = 'attackFlow 2.5s ease forwards';
+    path.setAttribute('d', pathD);
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-dasharray', '800');
+    path.setAttribute('stroke-dashoffset', '800');
+    path.style.setProperty('animation', 'attackFlow 2.2s ease-out forwards');
     attackLinesGroup.appendChild(path);
 
-    // 2. Add jumping signal head (comet dot)
+    // 2. Add comet head dot animated along path via native SVG animateMotion (Firefox & Chrome compliant)
     const signal = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    signal.setAttribute('r', '4');
-    signal.setAttribute('fill', severity === 'critical' ? '#ff1744' : severity === 'high' ? '#ff9100' : '#ffea00');
-    signal.style.filter = 'drop-shadow(0 0 8px currentColor)';
-    signal.style.offsetPath = `path('M${origin.x},${origin.y} Q${midX},${midY} ${target.x},${target.y}')`;
-    signal.style.animation = 'signalJump 2.5s ease forwards';
+    signal.setAttribute('r', '5');
+    signal.setAttribute('fill', color);
+    signal.style.filter = `drop-shadow(0 0 10px ${color})`;
+
+    const animMotion = document.createElementNS('http://www.w3.org/2000/svg', 'animateMotion');
+    animMotion.setAttribute('path', pathD);
+    animMotion.setAttribute('dur', '2.2s');
+    animMotion.setAttribute('repeatCount', '1');
+    animMotion.setAttribute('fill', 'freeze');
+    signal.appendChild(animMotion);
     attackLinesGroup.appendChild(signal);
 
     // 3. Add radar ping at origin
     const originPing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     originPing.setAttribute('cx', origin.x);
     originPing.setAttribute('cy', origin.y);
-    originPing.setAttribute('r', '2');
+    originPing.setAttribute('r', '4');
+    originPing.setAttribute('stroke', color);
     originPing.setAttribute('class', 'radar-ping');
     attackLinesGroup.appendChild(originPing);
 
-    // 4. Add radar ping at target after delay (when signal hits)
+    // 4. Add impact ripple ping at target when comet arrives
     setTimeout(() => {
       const targetPing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       targetPing.setAttribute('cx', target.x);
       targetPing.setAttribute('cy', target.y);
-      targetPing.setAttribute('r', '2');
+      targetPing.setAttribute('r', '4');
+      targetPing.setAttribute('stroke', color);
       targetPing.setAttribute('class', `radar-ping target-ping-${severity}`);
       attackLinesGroup.appendChild(targetPing);
       setTimeout(() => targetPing.remove(), 1500);
-    }, 2200);
+    }, 2000);
 
     blockedCount += Math.floor(Math.random() * 5) + 1;
     if (blockedAttacksEl) blockedAttacksEl.textContent = blockedCount.toLocaleString();
@@ -1422,7 +1435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         signal.remove();
         originPing.remove();
       }, 500); 
-    }, 3000);
+    }, 2600);
   }
 
   if (attackLinesGroup) {
