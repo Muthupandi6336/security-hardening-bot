@@ -1338,17 +1338,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const blockedAttacksEl = document.getElementById('blockedAttacks');
   const activeThreatsEl = document.getElementById('activeThreats');
 
+  // Attack Origins across 8 compass directions strictly on landmasses
   const attackOrigins = [
-    { name: 'Moscow', x: 720, y: 120 },
-    { name: 'Beijing', x: 940, y: 170 },
-    { name: 'Pyongyang', x: 970, y: 195 },
-    { name: 'Tehran', x: 740, y: 210 },
-    { name: 'São Paulo', x: 350, y: 400 }
+    { name: 'Moscow', x: 720, y: 135 },       // Europe / North
+    { name: 'Beijing', x: 940, y: 190 },      // East Asia / East
+    { name: 'Dubai', x: 735, y: 245 },        // Middle East
+    { name: 'Cairo', x: 670, y: 235 },        // North Africa
+    { name: 'Lagos', x: 590, y: 310 },        // West Africa
+    { name: 'Buenos Aires', x: 390, y: 470 }, // South America / South
+    { name: 'Singapore', x: 915, y: 345 },    // Southeast Asia
+    { name: 'Toronto', x: 300, y: 170 }       // North America / West
   ];
+
+  // Target Cloud Infrastructure Nodes across all 7 continents on landmasses
   const infraTargets = [
-    { name: 'US-East', x: 280, y: 180 },
-    { name: 'EU-West', x: 560, y: 140 },
-    { name: 'AP-South', x: 880, y: 280 }
+    { name: 'US-East', x: 310, y: 195 },      // North America (East)
+    { name: 'US-West', x: 210, y: 210 },      // North America (West)
+    { name: 'EU-West', x: 580, y: 155 },      // Western Europe (London)
+    { name: 'EU-Central', x: 615, y: 160 },   // Central Europe (Frankfurt)
+    { name: 'AP-South', x: 805, y: 275 },     // Asia (Mumbai)
+    { name: 'AP-East', x: 990, y: 205 },      // Asia (Tokyo)
+    { name: 'SA-East', x: 420, y: 420 },      // South America (São Paulo)
+    { name: 'AF-South', x: 660, y: 450 },     // Africa (Johannesburg)
+    { name: 'AU-East', x: 1040, y: 460 }      // Australia (Sydney)
   ];
 
   let blockedCount = 12000 + Math.floor(Math.random() * 3000);
