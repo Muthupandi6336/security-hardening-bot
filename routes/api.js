@@ -48,6 +48,51 @@ router.post('/scan', authenticateToken, isAdmin, sanitizeBody, async (req, res) 
 });
 
 /* ----------------------------------------------------------
+   POST /api/fix — Trigger automated threat remediation (Admin only)
+---------------------------------------------------------- */
+router.post('/fix', authenticateToken, isAdmin, sanitizeBody, async (req, res) => {
+  try {
+    const { action, target, port, ipAddress } = req.body;
+
+    if (!action) {
+      return res.status(400).json({ error: 'Action type is required (s3_block, ec2_port_revoke, ip_block)' });
+    }
+
+    let result;
+
+    if (action === 's3_block') {
+      result = await cloudService.fixAwsS3Bucket(target);
+    } else if (action === 'ec2_port_revoke') {
+      result = await cloudService.fixAwsSecurityGroupPort(target, port || 3306);
+    } else if (action === 'ip_block') {
+      result = await cloudService.blockIpAddress(ipAddress || target);
+    } else {
+      return res.status(400).json({ error: 'Unknown remediation action' });
+    }
+
+    // Record fix action in AuditLogs
+    db.run(
+      "INSERT INTO AuditLogs (type, title, description, resource, user, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [
+        'fix',
+        `Auto-Fix: ${action.toUpperCase()}`,
+        result.message || `Remediation executed for ${target}`,
+        target || 'system',
+        req.user.username,
+        req.ip,
+        req.get('User-Agent') || 'unknown'
+      ]
+    );
+
+    res.json(result);
+  } catch (error) {
+    console.error('Fix remediation error:', error.message);
+    res.status(500).json({ error: 'Remediation failed. Check server logs.' });
+  }
+});
+
+
+/* ----------------------------------------------------------
    GET /api/audit-logs — Fetch recent audit logs (Auth required)
 ---------------------------------------------------------- */
 router.get('/audit-logs', authenticateToken, (req, res) => {
