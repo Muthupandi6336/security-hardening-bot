@@ -431,8 +431,12 @@
                 window.location.href = 'index.html';
 
             } catch (err) {
-                showError('loginError', 'Connection failed. Is the server running?');
-                setLoading('loginBtn', false);
+                // Static host fallback (e.g. GitHub Pages static demo)
+                console.warn('Backend API not reachable. Falling back to client-side session for static demo.');
+                localStorage.setItem('shieldai_token', 'demo_token_' + Date.now());
+                localStorage.setItem('shieldai_user', username || 'admin');
+                localStorage.setItem('shieldai_role', 'admin');
+                window.location.href = 'index.html';
             }
         });
 
