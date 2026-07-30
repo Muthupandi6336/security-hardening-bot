@@ -236,14 +236,22 @@
                 <p class="section-desc">Real-time visualization of attack origins targeting your cloud infrastructure worldwide.</p>
             </div>
             <div class="threat-map-card dash-card anim-fade-up">
-                <div class="card-header">
-                    <h3>Global Attack Monitor</h3>
-                    <span class="live-badge"><span class="pulse-dot"></span> LIVE</span>
+                <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h3>Global Attack Monitor</h3>
+                        <span class="live-badge"><span class="pulse-dot"></span> LIVE ATTACK FEED</span>
+                    </div>
+                    <!-- Severity Color Legend -->
+                    <div class="map-severity-legend" style="display: flex; gap: 1.25rem; font-size: 0.8rem; color: var(--text-secondary); align-items: center; background: rgba(255,255,255,0.03); padding: 6px 14px; border-radius: 20px; border: 1px solid var(--glass-border);">
+                        <span><strong style="color: #ff1744;">🔴 Critical</strong> (SSH / Exploits)</span>
+                        <span><strong style="color: #ff9100;">🟠 High</strong> (Port Scans)</span>
+                        <span><strong style="color: #ffea00;">🟡 Medium</strong> (Recon)</span>
+                    </div>
                 </div>
                 <div class="threat-map-container">
-                    <svg class="threat-map-svg" id="threatMapSvg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet">
+                    <svg class="threat-map-svg" id="threatMapSvg" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet" xmlns:xlink="http://www.w3.org/1999/xlink">
                         <!-- High-res world map -->
-                        <image href="assets/world.svg" x="50" y="0" width="1100" height="600" opacity="0.25" style="filter: invert(1) hue-rotate(180deg) sepia(1) saturate(5) brightness(0.5) contrast(1.2);" />
+                        <image href="assets/world.svg" xlink:href="assets/world.svg" x="50" y="0" width="1100" height="600" opacity="0.55" style="filter: invert(1) hue-rotate(190deg) brightness(0.9) contrast(1.4);" />
                         <!-- Grid -->
                         <g class="map-grid" opacity="0.05">
                             <line x1="0" y1="150" x2="1200" y2="150" stroke="currentColor" stroke-dasharray="4,8"/>

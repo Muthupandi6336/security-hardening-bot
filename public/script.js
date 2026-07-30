@@ -1426,8 +1426,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (attackLinesGroup) {
-    // Local interval removed. Attack lines are drawn by WebSockets via socket.on('threat-alert')
+    // Launch initial batch of attacks
+    launchAttack();
+    setTimeout(launchAttack, 800);
+    setTimeout(launchAttack, 1600);
+
+    // Continuous Live Attack Loop (fires attacks continuously even on static hosts)
+    setInterval(() => {
+      launchAttack();
+    }, 2200);
   }
+
+  // --- Interactive Map Node Tooltips ---
+  const mapTooltip = document.createElement('div');
+  mapTooltip.className = 'map-hover-tooltip';
+  mapTooltip.style.cssText = 'position: absolute; display: none; background: rgba(15, 15, 20, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: #fff; pointer-events: none; z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.5); backdrop-filter: blur(10px);';
+  document.body.appendChild(mapTooltip);
+
+  const mapNodes = document.querySelectorAll('.threat-map-container .map-node');
+  mapNodes.forEach(node => {
+    node.addEventListener('mouseenter', (e) => {
+      const name = node.dataset.name || 'Unknown Region';
+      const isInfra = node.classList.contains('infra-node');
+      
+      const statusHtml = isInfra 
+        ? '<span style="color:#00e676;">🟢 ACTIVE INFRASTRUCTURE</span>' 
+        : '<span style="color:#ff1744;">🔴 THREAT ORIGIN</span>';
+
+      const detailsHtml = isInfra
+        ? `<br>Latency: <b>${Math.floor(12 + Math.random()*20)}ms</b><br>Blocked Threats: <b>${(Math.floor(Math.random()*4000) + 1000).toLocaleString()}</b><br>Traffic: <b>Normal</b>`
+        : `<br>Targeting: <b>Global Nodes</b><br>Threat Level: <b style="color:#ff9100;">HIGH</b><br>Attack Vectors: <b>SSH, Port Scan, Recon</b>`;
+
+      mapTooltip.innerHTML = `<strong>${name}</strong> — ${statusHtml}${detailsHtml}`;
+      mapTooltip.style.display = 'block';
+    });
+
+    node.addEventListener('mousemove', (e) => {
+      mapTooltip.style.left = (e.pageX + 15) + 'px';
+      mapTooltip.style.top = (e.pageY + 15) + 'px';
+    });
+
+    node.addEventListener('mouseleave', () => {
+      mapTooltip.style.display = 'none';
+    });
+  });
 
   // Counter increment
   setInterval(() => {
