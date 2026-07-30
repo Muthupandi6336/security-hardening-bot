@@ -7,12 +7,171 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // F10. AUTHENTICATION CHECK
+  // ============================================================
+  //  AUTHENTICATION & SESSION MANAGEMENT
+  // ============================================================
+
   const token = localStorage.getItem('shieldai_token');
   if (!token) {
     window.location.href = '/login.html';
     return;
   }
+
+  // --- XSS Sanitization helper ---
+  function sanitizeHTML(str) {
+    if (typeof str !== 'string') return str;
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // --- JWT Decode (without verification — just for expiry check) ---
+  function decodeJWT(token) {
+    try {
+      const payload = token.split('.')[1];
+      return JSON.parse(atob(payload));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // --- Token Auto-Refresh ---
+  async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem('shieldai_refresh');
+    if (!refreshToken) {
+      secureLogout();
+      return null;
+    }
+    try {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken })
+      });
+      if (!response.ok) {
+        secureLogout();
+        return null;
+      }
+      const data = await response.json();
+      localStorage.setItem('shieldai_token', data.accessToken);
+      return data.accessToken;
+    } catch (err) {
+      console.error('Token refresh failed:', err);
+      return null;
+    }
+  }
+
+  // --- Authenticated Fetch (auto-refreshes token if expired) ---
+  async function authFetch(url, options = {}) {
+    let currentToken = localStorage.getItem('shieldai_token');
+    options.headers = {
+      ...options.headers,
+      'Authorization': 'Bearer ' + currentToken,
+      'Content-Type': 'application/json'
+    };
+
+    let response = await fetch(url, options);
+
+    // If 401 with TOKEN_EXPIRED, try refresh
+    if (response.status === 401) {
+      const errorData = await response.json().catch(() => ({}));
+      if (errorData.code === 'TOKEN_EXPIRED') {
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          options.headers['Authorization'] = 'Bearer ' + newToken;
+          response = await fetch(url, options);
+        }
+      } else {
+        secureLogout();
+      }
+    }
+    return response;
+  }
+
+  // --- Secure Logout ---
+  async function secureLogout() {
+    const accessToken = localStorage.getItem('shieldai_token');
+    const refreshToken = localStorage.getItem('shieldai_refresh');
+
+    // Call backend to blacklist tokens
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + accessToken
+        },
+        body: JSON.stringify({ refreshToken })
+      });
+    } catch (e) {
+      // Ignore errors — we're logging out anyway
+    }
+
+    // Clear all stored data
+    localStorage.removeItem('shieldai_token');
+    localStorage.removeItem('shieldai_refresh');
+    localStorage.removeItem('shieldai_user');
+    localStorage.removeItem('shieldai_role');
+    window.location.href = '/login.html';
+  }
+
+  // --- Logout Button ---
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to logout?')) {
+        secureLogout();
+      }
+    });
+  }
+
+  // --- Session Timer Countdown ---
+  const sessionTimerEl = document.getElementById('sessionTimer');
+  function updateSessionTimer() {
+    const currentToken = localStorage.getItem('shieldai_token');
+    if (!currentToken) return;
+
+    const decoded = decodeJWT(currentToken);
+    if (!decoded || !decoded.exp) return;
+
+    const now = Math.floor(Date.now() / 1000);
+    const remaining = decoded.exp - now;
+
+    if (remaining <= 0) {
+      // Token expired — try refresh
+      refreshAccessToken();
+      return;
+    }
+
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+
+    if (sessionTimerEl) {
+      sessionTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      // Warning when < 2 minutes
+      const sessionInfo = document.getElementById('sessionInfo');
+      if (sessionInfo) {
+        if (remaining < 120) {
+          sessionInfo.style.color = '#ff1744';
+          // Auto-refresh when < 1 minute
+          if (remaining < 60) {
+            refreshAccessToken();
+          }
+        } else {
+          sessionInfo.style.color = '';
+        }
+      }
+    }
+  }
+
+  // Update timer every second
+  setInterval(updateSessionTimer, 1000);
+  updateSessionTimer();
+
+  // Auto-refresh token every 12 minutes (token lasts 15min)
+  setInterval(refreshAccessToken, 12 * 60 * 1000);
+
 
   // F11. REAL-TIME WEBSOCKETS
   const socket = typeof io !== 'undefined' ? io() : null;

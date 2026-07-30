@@ -2972,6 +2972,42 @@ code {
   transform: rotate(45deg);
 }
 
+.nav-logout-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.nav-logout-btn:hover {
+  color: #ff1744;
+  border-color: rgba(255, 23, 68, 0.4);
+  background: rgba(255, 23, 68, 0.1);
+  transform: translateY(-1px);
+}
+
+.nav-session-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
 /* -------------------------------------------------------
    26. SETUP MODAL
    ------------------------------------------------------- */

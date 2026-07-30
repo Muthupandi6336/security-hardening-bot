@@ -18,7 +18,7 @@
         }
         .login-card {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             padding: 40px;
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
@@ -29,38 +29,48 @@
             position: relative;
         }
         .login-card h2 {
-            margin-bottom: 24px;
+            margin-bottom: 8px;
             font-size: 1.5rem;
         }
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             text-align: left;
             position: relative;
         }
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-size: 0.85rem;
             color: var(--text-secondary);
+            font-weight: 500;
         }
         .form-group input {
             width: 100%;
             padding: 12px 16px;
-            padding-right: 40px; /* Space for eye icon */
+            padding-right: 40px;
             background: var(--bg-primary);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-md);
             color: var(--text-primary);
             font-family: var(--font-body);
+            font-size: 0.9rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
         }
         .form-group input:focus {
             outline: none;
-            border-color: #4cc9f0;
+            border-color: #7209b7;
+            box-shadow: 0 0 0 3px rgba(114, 9, 183, 0.15);
         }
         .toggle-password {
             position: absolute;
             right: 15px;
-            top: 40px;
+            top: 38px;
             cursor: pointer;
             color: var(--text-secondary);
             transition: color 0.2s;
@@ -78,45 +88,21 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: opacity 0.2s;
-            margin-bottom: 15px;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-bottom: 12px;
         }
-        .login-btn:hover {
-            opacity: 0.9;
-        }
-        
-        .google-btn {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-full);
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .google-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .google-icon {
-            width: 20px;
-            height: 20px;
+        .login-btn:hover { opacity: 0.9; }
+        .login-btn:active { transform: scale(0.98); }
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .divider {
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 20px 0;
+            margin: 16px 0;
             color: var(--text-secondary);
             font-size: 0.85rem;
         }
@@ -125,152 +111,413 @@
             flex: 1;
             border-bottom: 1px solid var(--glass-border);
         }
-        .divider:not(:empty)::before {
-            margin-right: .5em;
-        }
-        .divider:not(:empty)::after {
-            margin-left: .5em;
-        }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
 
-        .forgot-link {
+        .switch-link {
             color: #4cc9f0;
             font-size: 0.85rem;
             text-decoration: none;
             transition: color 0.2s;
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 8px;
+            cursor: pointer;
         }
-        .forgot-link:hover {
+        .switch-link:hover {
             color: #f72585;
             text-decoration: underline;
         }
 
-        #loginError, #forgotSuccess {
+        .error-msg {
             font-size: 0.85rem;
-            margin-top: 16px;
+            margin-top: 12px;
             display: none;
+            color: #ff1744;
+            text-align: left;
+            padding: 10px;
+            background: rgba(255, 23, 68, 0.08);
+            border: 1px solid rgba(255, 23, 68, 0.2);
+            border-radius: var(--radius-sm);
         }
-        #loginError { color: #ff1744; }
-        #forgotSuccess { color: #00e676; }
+        .success-msg {
+            font-size: 0.85rem;
+            margin-top: 12px;
+            display: none;
+            color: #00e676;
+            text-align: left;
+            padding: 10px;
+            background: rgba(0, 230, 118, 0.08);
+            border: 1px solid rgba(0, 230, 118, 0.2);
+            border-radius: var(--radius-sm);
+        }
 
-        .hidden {
-            display: none !important;
+        .password-strength {
+            margin-top: 6px;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--glass-border);
+            overflow: hidden;
         }
+        .password-strength-bar {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+            width: 0%;
+        }
+        .password-requirements {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: left;
+        }
+        .password-requirements li {
+            margin-bottom: 2px;
+            list-style: none;
+        }
+        .password-requirements li::before {
+            content: '✗ ';
+            color: #ff1744;
+        }
+        .password-requirements li.met::before {
+            content: '✓ ';
+            color: #00e676;
+        }
+        .password-requirements li.met {
+            color: #00e676;
+        }
+
+        .hidden { display: none !important; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="hero-grid"></div>
+
+    <!-- ===== LOGIN CARD ===== -->
     <div class="login-card" id="loginCard">
         <h2>Welcome to ShieldAI</h2>
-        <button type="button" class="google-btn" id="googleLoginBtn">
-            <svg class="google-icon" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Continue with Google
-        </button>
-        
-        <div class="divider">OR</div>
-
+        <p class="login-subtitle">Sign in to your security dashboard</p>
         <form id="loginForm">
             <div class="form-group">
-                <label for="username">Email / Username</label>
-                <input type="text" id="username" required placeholder="admin" autocomplete="username">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" required autocomplete="username" maxlength="50">
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required placeholder="admin123" autocomplete="current-password">
-                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required autocomplete="current-password" maxlength="128">
+                <i class="fas fa-eye toggle-password" id="toggleLoginPassword"></i>
             </div>
-            <button type="submit" class="login-btn">Secure Login</button>
-            <a href="#" class="forgot-link" id="showForgotBtn">Forgot Password?</a>
-            <div id="loginError">Invalid credentials (Use admin/admin123)</div>
+            <button type="submit" class="login-btn" id="loginBtn">Secure Login</button>
+            <div class="error-msg" id="loginError"></div>
         </form>
+        <div class="divider">New here?</div>
+        <a class="switch-link" id="showRegisterBtn">Create an account →</a>
     </div>
 
-    <!-- Forgot Password Card -->
-    <div class="login-card hidden" id="forgotCard">
-        <h2>Password Recovery</h2>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Enter your email or mobile number to receive a recovery link.</p>
-        <form id="forgotForm">
+    <!-- ===== REGISTER CARD ===== -->
+    <div class="login-card hidden" id="registerCard">
+        <h2>Create Account</h2>
+        <p class="login-subtitle">Set up your ShieldAI admin credentials</p>
+        <form id="registerForm">
             <div class="form-group">
-                <label for="recoveryContact">Email or Mobile Number</label>
-                <input type="text" id="recoveryContact" required placeholder="e.g., admin@shieldai.net">
+                <label for="regUsername">Username</label>
+                <input type="text" id="regUsername" required autocomplete="username" minlength="3" maxlength="50">
             </div>
-            <button type="submit" class="login-btn">Send Recovery Link</button>
-            <a href="#" class="forgot-link" id="backToLoginBtn">Back to Login</a>
-            <div id="forgotSuccess">Recovery instructions sent! Check your inbox.</div>
+            <div class="form-group">
+                <label for="regPassword">Password</label>
+                <input type="password" id="regPassword" required autocomplete="new-password" maxlength="128">
+                <i class="fas fa-eye toggle-password" id="toggleRegPassword"></i>
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="strengthBar"></div>
+                </div>
+                <ul class="password-requirements" id="passwordReqs">
+                    <li id="req-length">Minimum 8 characters</li>
+                    <li id="req-upper">One uppercase letter</li>
+                    <li id="req-lower">One lowercase letter</li>
+                    <li id="req-number">One number</li>
+                    <li id="req-special">One special character (!@#$...)</li>
+                </ul>
+            </div>
+            <div class="form-group">
+                <label for="regConfirmPassword">Confirm Password</label>
+                <input type="password" id="regConfirmPassword" required autocomplete="new-password" maxlength="128">
+            </div>
+            <button type="submit" class="login-btn" id="registerBtn">Create Account</button>
+            <div class="error-msg" id="registerError"></div>
+            <div class="success-msg" id="registerSuccess"></div>
+        </form>
+        <div class="divider">Already have an account?</div>
+        <a class="switch-link" id="showLoginBtn">← Back to Login</a>
+    </div>
+
+    <!-- ===== CHANGE PASSWORD CARD (forced on first login) ===== -->
+    <div class="login-card hidden" id="changePasswordCard">
+        <h2>🔒 Change Your Password</h2>
+        <p class="login-subtitle">Your admin account requires a password change for security.</p>
+        <form id="changePasswordForm">
+            <div class="form-group">
+                <label for="cpCurrentPassword">Current Password</label>
+                <input type="password" id="cpCurrentPassword" required maxlength="128">
+            </div>
+            <div class="form-group">
+                <label for="cpNewPassword">New Password</label>
+                <input type="password" id="cpNewPassword" required maxlength="128">
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="cpStrengthBar"></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="cpConfirmPassword">Confirm New Password</label>
+                <input type="password" id="cpConfirmPassword" required maxlength="128">
+            </div>
+            <button type="submit" class="login-btn" id="changePasswordBtn">Update Password</button>
+            <div class="error-msg" id="changePasswordError"></div>
         </form>
     </div>
 
     <script>
-        const loginCard = document.getElementById('loginCard');
-        const forgotCard = document.getElementById('forgotCard');
-        
-        // Navigation between Login and Forgot Password
-        document.getElementById('showForgotBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            loginCard.classList.add('hidden');
-            forgotCard.classList.remove('hidden');
-            document.getElementById('forgotSuccess').style.display = 'none';
-        });
+    (function() {
+        'use strict';
 
-        document.getElementById('backToLoginBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            forgotCard.classList.add('hidden');
+        const API_BASE = '/api/auth';
+        const loginCard = document.getElementById('loginCard');
+        const registerCard = document.getElementById('registerCard');
+        const changePasswordCard = document.getElementById('changePasswordCard');
+
+        // If already logged in, redirect to dashboard
+        if (localStorage.getItem('shieldai_token')) {
+            window.location.href = '/';
+            return;
+        }
+
+        /* --- Navigation --- */
+        document.getElementById('showRegisterBtn').addEventListener('click', () => {
+            loginCard.classList.add('hidden');
+            registerCard.classList.remove('hidden');
+        });
+        document.getElementById('showLoginBtn').addEventListener('click', () => {
+            registerCard.classList.add('hidden');
             loginCard.classList.remove('hidden');
         });
 
-        // Password Toggle Logic
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('password');
+        /* --- Password Visibility Toggle --- */
+        function setupToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            const input = document.getElementById(inputId);
+            if (toggle && input) {
+                toggle.addEventListener('click', () => {
+                    const type = input.type === 'password' ? 'text' : 'password';
+                    input.type = type;
+                    toggle.classList.toggle('fa-eye');
+                    toggle.classList.toggle('fa-eye-slash');
+                });
+            }
+        }
+        setupToggle('toggleLoginPassword', 'loginPassword');
+        setupToggle('toggleRegPassword', 'regPassword');
 
-        togglePassword.addEventListener('click', () => {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            togglePassword.classList.toggle('fa-eye');
-            togglePassword.classList.toggle('fa-eye-slash');
+        /* --- Password Strength Indicator --- */
+        function updatePasswordStrength(password, barId) {
+            const bar = document.getElementById(barId);
+            let score = 0;
+            if (password.length >= 8) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[a-z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
+
+            const percent = (score / 5) * 100;
+            const colors = ['#ff1744', '#ff9100', '#ffea00', '#76ff03', '#00e676'];
+            bar.style.width = percent + '%';
+            bar.style.background = colors[Math.max(0, score - 1)] || '#ff1744';
+
+            // Update requirement checkmarks
+            if (barId === 'strengthBar') {
+                document.getElementById('req-length').className = password.length >= 8 ? 'met' : '';
+                document.getElementById('req-upper').className = /[A-Z]/.test(password) ? 'met' : '';
+                document.getElementById('req-lower').className = /[a-z]/.test(password) ? 'met' : '';
+                document.getElementById('req-number').className = /[0-9]/.test(password) ? 'met' : '';
+                document.getElementById('req-special').className = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) ? 'met' : '';
+            }
+        }
+
+        document.getElementById('regPassword').addEventListener('input', (e) => {
+            updatePasswordStrength(e.target.value, 'strengthBar');
         });
 
-        // Mock Google Login
-        document.getElementById('googleLoginBtn').addEventListener('click', () => {
-            // Simulate Google OAuth flow
-            localStorage.setItem('shieldai_token', 'mock_google_token_' + Date.now());
-            window.location.href = '/';
-        });
+        const cpNewPw = document.getElementById('cpNewPassword');
+        if (cpNewPw) {
+            cpNewPw.addEventListener('input', (e) => {
+                updatePasswordStrength(e.target.value, 'cpStrengthBar');
+            });
+        }
 
-        // Mock Login Logic
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const password = passwordInput.value;
-            const err = document.getElementById('loginError');
-            
-            // Allow 'admin' / 'admin123' OR any valid email format with any password (for demo purposes)
-            const isEmail = username.includes('@');
-            
-            if ((username === 'admin' && password === 'admin123') || isEmail) {
-                localStorage.setItem('shieldai_token', 'mock_token_' + Date.now());
-                window.location.href = '/';
+        /* --- Show Error/Success Messages --- */
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 8000);
+        }
+
+        function showSuccess(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            if (loading) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.textContent;
+                btn.innerHTML = '<span class="loading-spinner"></span>Processing...';
             } else {
-                err.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = btn.dataset.originalText || 'Submit';
+            }
+        }
+
+        /* --- LOGIN --- */
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading('loginBtn', true);
+
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(API_BASE + '/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    showError('loginError', data.error || 'Login failed');
+                    setLoading('loginBtn', false);
+                    return;
+                }
+
+                // Store tokens securely
+                localStorage.setItem('shieldai_token', data.accessToken);
+                localStorage.setItem('shieldai_refresh', data.refreshToken);
+                localStorage.setItem('shieldai_user', username);
+                localStorage.setItem('shieldai_role', data.role);
+
+                // Check if forced password change is needed
+                if (data.forcePasswordChange) {
+                    loginCard.classList.add('hidden');
+                    changePasswordCard.classList.remove('hidden');
+                    setLoading('loginBtn', false);
+                    return;
+                }
+
+                // Redirect to dashboard
+                window.location.href = '/';
+
+            } catch (err) {
+                showError('loginError', 'Connection failed. Is the server running?');
+                setLoading('loginBtn', false);
             }
         });
 
-        // Mock Forgot Password Logic
-        document.getElementById('forgotForm').addEventListener('submit', (e) => {
+        /* --- REGISTER --- */
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const successMsg = document.getElementById('forgotSuccess');
-            successMsg.style.display = 'block';
-            setTimeout(() => {
-                successMsg.style.display = 'none';
-                document.getElementById('recoveryContact').value = '';
-                forgotCard.classList.add('hidden');
-                loginCard.classList.remove('hidden');
-            }, 3000);
+            setLoading('registerBtn', true);
+
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+
+            try {
+                const response = await fetch(API_BASE + '/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, confirmPassword })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    let errMsg = data.error;
+                    if (data.requirements) {
+                        errMsg += ': ' + data.requirements.join(', ');
+                    }
+                    showError('registerError', errMsg);
+                    setLoading('registerBtn', false);
+                    return;
+                }
+
+                showSuccess('registerSuccess', '✅ Account created! Redirecting to login...');
+                setTimeout(() => {
+                    registerCard.classList.add('hidden');
+                    loginCard.classList.remove('hidden');
+                    document.getElementById('loginUsername').value = username;
+                    document.getElementById('loginUsername').focus();
+                }, 2000);
+
+            } catch (err) {
+                showError('registerError', 'Connection failed. Is the server running?');
+            }
+            setLoading('registerBtn', false);
         });
+
+        /* --- CHANGE PASSWORD (Forced) --- */
+        document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading('changePasswordBtn', true);
+
+            const currentPassword = document.getElementById('cpCurrentPassword').value;
+            const newPassword = document.getElementById('cpNewPassword').value;
+            const confirmNewPassword = document.getElementById('cpConfirmPassword').value;
+
+            const token = localStorage.getItem('shieldai_token');
+
+            try {
+                const response = await fetch(API_BASE + '/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword, confirmNewPassword })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    let errMsg = data.error;
+                    if (data.requirements) errMsg += ': ' + data.requirements.join(', ');
+                    showError('changePasswordError', errMsg);
+                    setLoading('changePasswordBtn', false);
+                    return;
+                }
+
+                // Password changed successfully — go to dashboard
+                window.location.href = '/';
+
+            } catch (err) {
+                showError('changePasswordError', 'Connection failed.');
+                setLoading('changePasswordBtn', false);
+            }
+        });
+    })();
     </script>
 </body>
 </html>

@@ -1,70 +1,101 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const cloudService = require('../services/cloudService');
 const db = require('../db/database');
+const { authenticateToken, isAdmin, sanitizeBody } = require('../middleware/security');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-shieldai-key';
+/* ----------------------------------------------------------
+   POST /api/scan — Trigger a cloud scan (Admin only)
+---------------------------------------------------------- */
+router.post('/scan', authenticateToken, isAdmin, sanitizeBody, async (req, res) => {
+  try {
+    const provider = req.body.provider || 'aws';
+    
+    // Validate provider
+    const validProviders = ['aws', 'gcp', 'azure'];
+    if (!validProviders.includes(provider)) {
+      return res.status(400).json({ error: 'Invalid provider. Use: aws, gcp, or azure' });
+    }
 
-// Middleware to protect API routes
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+    let result;
+    if (provider === 'aws') {
+      result = await cloudService.scanAwsS3();
+    } else if (provider === 'gcp') {
+      result = await cloudService.scanGcpCompute();
+    } else if (provider === 'azure') {
+      result = await cloudService.scanAzureCompute();
+    }
 
-  if (token == null) return res.sendStatus(401);
+    // Log scan to DB with IP and user agent
+    db.run(
+      "INSERT INTO AuditLogs (type, title, description, resource, user, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [
+        'scan',
+        `Full Scan: ${provider.toUpperCase()}`,
+        `Scan completed with status: ${result.status}`,
+        provider,
+        req.user.username,
+        req.ip,
+        req.get('User-Agent') || 'unknown'
+      ]
+    );
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-};
-
-// Middleware for Admin-only actions
-const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ error: 'Forbidden: Admin access required' });
+    res.json(result);
+  } catch (error) {
+    console.error('Scan error:', error.message);
+    res.status(500).json({ error: 'Scan failed. Check server logs.' });
   }
-};
-
-// Example protected route to trigger a cloud scan
-router.post('/scan', authenticateToken, isAdmin, async (req, res) => {
-  const provider = req.body.provider || 'aws';
-  let result;
-  
-  if (provider === 'aws') {
-    result = await cloudService.scanAwsS3();
-  } else if (provider === 'gcp') {
-    result = await cloudService.scanGcpCompute();
-  } else {
-    result = { status: 'error', message: 'Unknown provider' };
-  }
-
-  // Log scan to DB
-  db.run("INSERT INTO AuditLogs (type, title, description, resource, user) VALUES (?, ?, ?, ?, ?)", 
-    ['scan', `Full Scan: ${provider}`, `Scan completed with status: ${result.status}`, provider, req.user.username]);
-
-  res.json(result);
 });
 
-// Fetch recent audit logs
+/* ----------------------------------------------------------
+   GET /api/audit-logs — Fetch recent audit logs (Auth required)
+---------------------------------------------------------- */
 router.get('/audit-logs', authenticateToken, (req, res) => {
-  db.all("SELECT * FROM AuditLogs ORDER BY timestamp DESC LIMIT 20", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Cap at 100
+  const offset = Math.max(parseInt(req.query.offset) || 0, 0);
+  const type = req.query.type;
+
+  let query = "SELECT * FROM AuditLogs";
+  let params = [];
+
+  if (type && ['scan', 'fix', 'alert', 'policy', 'login', 'logout', 'security', 'registration'].includes(type)) {
+    query += " WHERE type = ?";
+    params.push(type);
+  }
+
+  query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+  params.push(limit, offset);
+
+  db.all(query, params, (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Failed to fetch audit logs' });
     res.json(rows);
   });
 });
 
+/* ----------------------------------------------------------
+   GET /api/health — Public health check
+---------------------------------------------------------- */
 router.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'ShieldAI API is running' });
+  res.json({
+    status: 'ok',
+    service: 'ShieldAI API',
+    uptime: Math.floor(process.uptime()) + 's',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// AI Chatbot Backend Logic (Keyword based smart responder)
-router.post('/chat', (req, res) => {
+/* ----------------------------------------------------------
+   POST /api/chat — AI Security Assistant (Auth required)
+---------------------------------------------------------- */
+router.post('/chat', authenticateToken, sanitizeBody, (req, res) => {
   const { message } = req.body;
-  if (!message) return res.status(400).json({ error: 'Message is required' });
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Message is required and must be a string' });
+  }
+
+  if (message.length > 1000) {
+    return res.status(400).json({ error: 'Message too long. Maximum 1000 characters.' });
+  }
 
   const msg = message.toLowerCase();
   let responseText = "I'm not sure about that specific issue. Can you provide more details or ask about IAM, open ports, or Zero Trust?";
@@ -86,12 +117,33 @@ router.post('/chat', (req, res) => {
     responseText = "You can generate a comprehensive security report by clicking the **Download Report** button at the top of the dashboard. This will compile all active detections, compliance scores, and threat maps into a PDF.";
   } else if (/\b(?:sql|injection)\b/i.test(msg)) {
     responseText = "### Preventing SQL Injection\nNever trust user input. Always use **Parameterized Queries** or an ORM.\n\n**Example (Node.js/SQLite):**\n```javascript\n// BAD ❌\ndb.run(`SELECT * FROM users WHERE name = '${userInput}'`);\n\n// GOOD ✅\ndb.run('SELECT * FROM users WHERE name = ?', [userInput]);\n```";
+  } else if (/\b(?:xss|cross.?site)\b/i.test(msg)) {
+    responseText = "### Preventing XSS (Cross-Site Scripting)\n- **Sanitize all input:** Strip or escape HTML tags from user input.\n- **Use Content Security Policy (CSP):** Set `Content-Security-Policy` headers.\n- **HttpOnly Cookies:** Prevent JavaScript from accessing session cookies.\n- **Output Encoding:** Always encode output when rendering user data in HTML.";
+  } else if (/\b(?:password|passwd|credential)\b/i.test(msg)) {
+    responseText = "### Password Security Best Practices\n- **Minimum 8 characters** with uppercase, lowercase, number, and special character.\n- **Use bcrypt/scrypt** for hashing (never MD5 or SHA1).\n- **Implement account lockout** after 5 failed attempts.\n- **Enforce password rotation** every 90 days.\n- **Never store passwords in plain text** or in environment variables.";
   }
 
-  // Simulate AI processing delay
+  // Log chat interaction
+  db.run(
+    "INSERT INTO AuditLogs (type, title, description, user, ip_address) VALUES (?, ?, ?, ?, ?)",
+    ['chat', 'AI Assistant Query', `User asked: ${message.substring(0, 100)}`, req.user.username, req.ip]
+  );
+
   setTimeout(() => {
     res.json({ reply: responseText });
-  }, 1500);
+  }, 800);
+});
+
+/* ----------------------------------------------------------
+   Error handling middleware for this router
+---------------------------------------------------------- */
+router.use((err, req, res, next) => {
+  console.error('[API Error]', err.message);
+  res.status(500).json({
+    error: 'Internal server error',
+    // Only show details in development
+    ...(process.env.NODE_ENV !== 'production' && { details: err.message })
+  });
 });
 
 module.exports = router;
