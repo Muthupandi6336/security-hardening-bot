@@ -209,6 +209,11 @@
     <div class="login-card" id="loginCard">
         <h2>Welcome to ShieldAI</h2>
         <p class="login-subtitle">Sign in to your security dashboard</p>
+        <!-- Multi-Tenant Role Notice -->
+        <div class="login-role-notice">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span><strong>Multi-User Platform</strong> — Standard registration grants <strong>Starter User</strong> access. System Admin privileges are reserved exclusively for the platform owner (<strong>Muthupandian K</strong>).</span>
+        </div>
         <form id="loginForm">
             <div class="form-group">
                 <label for="loginUsername">Username</label>
@@ -229,7 +234,7 @@
     <!-- ===== REGISTER CARD ===== -->
     <div class="login-card hidden" id="registerCard">
         <h2>Create Account</h2>
-        <p class="login-subtitle">Set up your ShieldAI admin credentials</p>
+        <p class="login-subtitle">Register as a Standard User — explore ShieldAI's security monitoring features. <span style="color:#f72585;">Admin access reserved for platform owner only.</span></p>
         <form id="registerForm">
             <div class="form-group">
                 <label for="regUsername">Username</label>
