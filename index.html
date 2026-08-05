@@ -60,6 +60,15 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span id="sessionTimer">15:00</span>
             </span>
+            <!-- User Role Badge -->
+            <div class="user-role-tag" id="userRoleTag" title="Your Current Plan / Role">
+                <span class="role-badge" id="roleBadge">👑 Admin</span>
+            </div>
+            <!-- Upgrade Button for Non-Admins -->
+            <button class="nav-upgrade-btn" id="navUpgradeBtn" style="display:none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Upgrade Plan ⚡
+            </button>
             <a href="#dashboard" class="nav-cta" id="navCta">Launch Console</a>
             <button class="nav-logout-btn" id="logoutBtn" aria-label="Logout" title="Secure Logout">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1193,6 +1202,101 @@
             <button class="chat-send-btn" id="chatSendBtn" aria-label="Send message">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
             </button>
+        </div>
+    </div>
+
+    <!-- ===== PREMIUM UPGRADE WINDOW (MODAL) ===== -->
+    <div class="upgrade-modal-overlay" id="upgradeModal">
+        <div class="upgrade-modal">
+            <div class="upgrade-modal-header">
+                <div class="upgrade-header-title">
+                    <span class="pro-crown-badge">👑 ENTERPRISE SECURITY</span>
+                    <h2>Upgrade Your ShieldAI Plan</h2>
+                    <p>Unlock Automated Cloud Remediation, Custom Policy Chains, Unlimited Scanning & Executive PDF Reports.</p>
+                </div>
+                <button class="upgrade-close-btn" id="upgradeCloseBtn" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Billing Cycle Toggle -->
+            <div class="billing-toggle-container">
+                <span class="billing-label active" id="billingMonthly">Monthly Billing</span>
+                <label class="billing-switch">
+                    <input type="checkbox" id="billingToggle">
+                    <span class="billing-slider"></span>
+                </label>
+                <span class="billing-label" id="billingAnnual">Annual Billing <span class="discount-pill">Save 20%</span></span>
+            </div>
+
+            <!-- Pricing Cards Grid -->
+            <div class="pricing-cards-grid">
+                <!-- Free Tier -->
+                <div class="pricing-card free-tier">
+                    <div class="pricing-card-header">
+                        <h3>Starter / Free</h3>
+                        <p>Basic Security Monitoring</p>
+                        <div class="tier-price">$0 <span>/ month</span></div>
+                    </div>
+                    <ul class="tier-features">
+                        <li><span class="feat-check">✓</span> 1 Cloud Region Monitoring</li>
+                        <li><span class="feat-check">✓</span> 15-Minute Scan Frequency</li>
+                        <li><span class="feat-check">✓</span> Live Threat Map View</li>
+                        <li class="feat-disabled">✗ Automated One-Click Auto-Fix</li>
+                        <li class="feat-disabled">✗ Cloud Credentials Integration</li>
+                        <li class="feat-disabled">✗ PDF Compliance Reports</li>
+                        <li class="feat-disabled">✗ Slack / Discord Webhooks</li>
+                    </ul>
+                    <button class="tier-btn btn-ghost" id="currentFreeBtn" disabled>Current Plan</button>
+                </div>
+
+                <!-- Pro Tier (Popular) -->
+                <div class="pricing-card pro-tier popular">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <div class="pricing-card-header">
+                        <h3>Pro Hardening</h3>
+                        <p>For Growing Engineering Teams</p>
+                        <div class="tier-price" id="proPrice">$49 <span>/ month</span></div>
+                    </div>
+                    <ul class="tier-features">
+                        <li><span class="feat-check">✓</span> 5 Cloud Regions (AWS, GCP, Azure)</li>
+                        <li><span class="feat-check">✓</span> 5-Minute Continuous Scanning</li>
+                        <li><span class="feat-check">✓</span> <b>Automated One-Click Auto-Fix</b></li>
+                        <li><span class="feat-check">✓</span> Executive PDF Compliance Reports</li>
+                        <li><span class="feat-check">✓</span> Slack & Discord Live Webhooks</li>
+                        <li class="feat-disabled">✗ Dedicated Bot Agent & 24/7 SLA</li>
+                    </ul>
+                    <button class="tier-btn btn-primary-gradient" id="upgradeProBtn">
+                        Upgrade to Pro ⚡
+                    </button>
+                </div>
+
+                <!-- Enterprise Tier -->
+                <div class="pricing-card enterprise-tier">
+                    <div class="pricing-card-header">
+                        <h3>Enterprise Shield</h3>
+                        <p>Full Autonomous Hardening</p>
+                        <div class="tier-price" id="entPrice">$199 <span>/ month</span></div>
+                    </div>
+                    <ul class="tier-features">
+                        <li><span class="feat-check">✓</span> <b>Unlimited</b> Cloud Regions & Accounts</li>
+                        <li><span class="feat-check">✓</span> Real-Time Continuous Auto-Remediation</li>
+                        <li><span class="feat-check">✓</span> Custom CIS / NIST / SOC2 Benchmark Rules</li>
+                        <li><span class="feat-check">✓</span> Dedicated Security Bot Agent & SLA</li>
+                        <li><span class="feat-check">✓</span> Full SIEM Integration (Splunk, Datadog)</li>
+                        <li><span class="feat-check">✓</span> 24/7 Priority Support & Onboarding</li>
+                    </ul>
+                    <button class="tier-btn btn-outline" id="upgradeEntBtn">
+                        Contact Sales / Upgrade
+                    </button>
+                </div>
+            </div>
+
+            <!-- Guarantee Notice -->
+            <div class="upgrade-footer-notice">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span>30-Day Money-Back Guarantee • Instant Activation • Cancel Anytime</span>
+            </div>
         </div>
     </div>
 

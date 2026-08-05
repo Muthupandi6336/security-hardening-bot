@@ -2437,4 +2437,123 @@ document.addEventListener('DOMContentLoaded', () => {
     draw();
   }
 
+  /* ----------------------------------------------------------
+     17. ROLE-BASED ACCESS CONTROL (RBAC) & PREMIUM UPGRADE
+  ---------------------------------------------------------- */
+  const currentUser = localStorage.getItem('shieldai_user') || 'admin';
+  let currentRole = localStorage.getItem('shieldai_role') || (currentUser === 'admin' ? 'admin' : 'free');
+
+  const roleBadge = document.getElementById('roleBadge');
+  const navUpgradeBtn = document.getElementById('navUpgradeBtn');
+  const upgradeModal = document.getElementById('upgradeModal');
+  const upgradeCloseBtn = document.getElementById('upgradeCloseBtn');
+  const billingToggle = document.getElementById('billingToggle');
+  const proPrice = document.getElementById('proPrice');
+  const entPrice = document.getElementById('entPrice');
+  const billingMonthly = document.getElementById('billingMonthly');
+  const billingAnnual = document.getElementById('billingAnnual');
+  const upgradeProBtn = document.getElementById('upgradeProBtn');
+  const upgradeEntBtn = document.getElementById('upgradeEntBtn');
+
+  function updateRoleUI() {
+    if (!roleBadge) return;
+    if (currentRole === 'admin') {
+      roleBadge.textContent = '👑 Admin';
+      roleBadge.className = 'role-badge role-admin';
+      if (navUpgradeBtn) navUpgradeBtn.style.display = 'none';
+    } else if (currentRole === 'pro') {
+      roleBadge.textContent = '⚡ Pro User';
+      roleBadge.className = 'role-badge role-pro';
+      if (navUpgradeBtn) navUpgradeBtn.style.display = 'none';
+    } else {
+      roleBadge.textContent = '⭐ Starter / Free';
+      roleBadge.className = 'role-badge role-free';
+      if (navUpgradeBtn) navUpgradeBtn.style.display = 'inline-flex';
+    }
+  }
+
+  function openUpgradeModal() {
+    if (upgradeModal) {
+      upgradeModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeUpgradeModal() {
+    if (upgradeModal) {
+      upgradeModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  // Admin Check helper — returns true if admin or pro, else opens upgrade modal
+  function checkFeatureAccess(featureName = 'Enterprise Feature') {
+    if (currentRole === 'admin' || currentRole === 'pro') {
+      return true;
+    }
+    openUpgradeModal();
+    showToast(`🔒 ${featureName} requires Pro or Enterprise Plan. Upgrade to unlock!`);
+    return false;
+  }
+
+  // Billing Toggle (Monthly vs Annual 20% discount)
+  if (billingToggle) {
+    billingToggle.addEventListener('change', () => {
+      if (billingToggle.checked) {
+        if (proPrice) proPrice.innerHTML = '$39 <span>/ month ($468/yr)</span>';
+        if (entPrice) entPrice.innerHTML = '$159 <span>/ month ($1,908/yr)</span>';
+        if (billingAnnual) billingAnnual.classList.add('active');
+        if (billingMonthly) billingMonthly.classList.remove('active');
+      } else {
+        if (proPrice) proPrice.innerHTML = '$49 <span>/ month</span>';
+        if (entPrice) entPrice.innerHTML = '$199 <span>/ month</span>';
+        if (billingMonthly) billingMonthly.classList.add('active');
+        if (billingAnnual) billingAnnual.classList.remove('active');
+      }
+    });
+  }
+
+  // Event Listeners for Modal
+  if (navUpgradeBtn) navUpgradeBtn.addEventListener('click', openUpgradeModal);
+  if (upgradeCloseBtn) upgradeCloseBtn.addEventListener('click', closeUpgradeModal);
+  if (upgradeModal) {
+    upgradeModal.addEventListener('click', (e) => {
+      if (e.target === upgradeModal) closeUpgradeModal();
+    });
+  }
+
+  // Intercept One-Click Fixes for non-admin/non-pro users
+  document.addEventListener('click', (e) => {
+    const fixBtn = e.target.closest('.fix-btn');
+    if (fixBtn && currentRole !== 'admin' && currentRole !== 'pro') {
+      e.preventDefault();
+      e.stopPropagation();
+      checkFeatureAccess('Automated One-Click Auto-Fix');
+    }
+  }, true);
+
+  // Upgrade Actions (Checkout Simulation)
+  if (upgradeProBtn) {
+    upgradeProBtn.addEventListener('click', () => {
+      currentRole = 'pro';
+      localStorage.setItem('shieldai_role', 'pro');
+      updateRoleUI();
+      closeUpgradeModal();
+      showToast('🎉 Upgraded to Pro Plan! Automated Auto-Fixing & Reports unlocked!');
+    });
+  }
+
+  if (upgradeEntBtn) {
+    upgradeEntBtn.addEventListener('click', () => {
+      currentRole = 'admin';
+      localStorage.setItem('shieldai_role', 'admin');
+      updateRoleUI();
+      closeUpgradeModal();
+      showToast('👑 Upgraded to Enterprise Shield! Full Admin & Autonomous features active!');
+    });
+  }
+
+  // Initialize Role UI
+  updateRoleUI();
+
 }); // end DOMContentLoaded
